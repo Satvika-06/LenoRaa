@@ -3241,25 +3241,16 @@ a {
     color: var(--sage-green);
 }
 
-.calc-ing-pill.active-oil-pill {
+.calc-ing-pill.active-oil-pill,
+.calc-ing-pill.active-flavor-pill {
     background: rgba(46, 74, 53, 0.08);
     border-color: var(--sage-green);
     color: var(--dark-green);
 }
 
-.calc-ing-pill.active-oil-pill svg {
-    color: var(--sage-green);
-}
-
-.calc-ing-pill.active-flavor-pill {
-    background: linear-gradient(135deg, var(--gold), var(--white));
-    border-color: var(--gold);
-    color: var(--dark-green);
-    box-shadow: 0 4px 8px rgba(185, 155, 95, 0.15);
-}
-
+.calc-ing-pill.active-oil-pill svg,
 .calc-ing-pill.active-flavor-pill svg {
-    color: var(--gold);
+    color: var(--sage-green);
 }
 
 /* Customize & FAQ pastel backgrounds gradient upgrade */
