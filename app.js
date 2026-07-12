@@ -1685,6 +1685,10 @@ function getErrorMessage(error) {
         message = error;
     } else if (error.message) {
         message = error.message;
+    } else if (error.error_description) {
+        message = error.error_description;
+    } else if (error.error) {
+        message = typeof error.error === 'string' ? error.error : (error.error.message || JSON.stringify(error.error));
     } else {
         try {
             message = JSON.stringify(error);
@@ -1694,6 +1698,7 @@ function getErrorMessage(error) {
     }
 
     if (message === "{}" || message === "null" || message === "undefined") {
+        console.error("Unparseable error details:", error);
         return "An unexpected error occurred. Please check your details and try again.";
     }
 
