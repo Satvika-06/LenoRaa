@@ -110,7 +110,7 @@ const PRODUCTS = [
         price: 120,
         category: "normal",
         description: "Ground arabica coffee beans provide dual action: scrub away dead skin flakes while natural caffeine tightens skin texture.",
-        image: "assets/coffee.jpeg",
+        image: "assets/coffee.png",
         tags: ["Cellulite Scrub", "Exfoliator"],
         ingredients: ["Ground Coffee Beans", "Natural Caffeine", "Coconut Oil", "Palm Oil", "Castor Oil"]
     },
@@ -286,7 +286,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     // Initialize Auth state
-    updateAuthUI();
+    setupAuthListener();
     setupAuthEventListeners();
 
     // Initialize Lucide Icons
@@ -1362,25 +1362,48 @@ function updateAuthUI() {
     const userDropdownMenu = document.getElementById("user-dropdown-menu");
     const nameEl = document.getElementById("user-display-name");
     const emailEl = document.getElementById("user-display-email");
+    const avatarImgEl = document.getElementById("user-display-avatar");
 
     if (!loginToggleBtn) return;
 
     if (currentUser) {
-        // Change login button style to show user initials (Avatar mode)
-        const initials = currentUser.avatar || currentUser.name.split(" ").map(n => n[0]).join("").substring(0, 2);
-        loginToggleBtn.innerHTML = `<span class="nav-avatar">${initials}</span><span class="nav-login-text">${currentUser.name}</span>`;
+        // Change login button style to show user avatar or initials, replacing "Sign In" text with "👤 Profile"
+        let avatarMarkup = '';
+        const isUrl = currentUser.avatar && (currentUser.avatar.startsWith('http') || currentUser.avatar.includes('/') || currentUser.avatar.includes('gravatar') || currentUser.avatar.includes('googleusercontent'));
+        
+        if (isUrl) {
+            avatarMarkup = `<img src="${currentUser.avatar}" alt="${currentUser.name}" class="nav-avatar-img" style="width:28px; height:28px; border-radius:50%; object-fit:cover; margin-right:8px; border:1.5px solid var(--accent-light);">`;
+            
+            // Populate dropdown avatar
+            if (avatarImgEl) {
+                avatarImgEl.src = currentUser.avatar;
+                avatarImgEl.classList.remove("hidden");
+            }
+        } else {
+            const initials = currentUser.avatar || currentUser.name.split(" ").map(n => n[0]).join("").substring(0, 2);
+            avatarMarkup = `<span class="nav-avatar">${initials}</span>`;
+            if (avatarImgEl) {
+                avatarImgEl.classList.add("hidden");
+            }
+        }
+        
+        loginToggleBtn.innerHTML = `${avatarMarkup}<span class="nav-login-text">👤 Profile</span>`;
         loginToggleBtn.classList.add("logged-in");
 
         // Populate dropdown details
         if (nameEl) nameEl.textContent = currentUser.name;
-        if (emailEl) emailEl.textContent = currentUser.email || "Doctor Member";
+        if (emailEl) emailEl.textContent = currentUser.email || "Google Auth Member";
     } else {
         // Logged out: restore standard button icon & text
         loginToggleBtn.innerHTML = `<i data-lucide="user"></i><span class="nav-login-text">Sign In</span>`;
         loginToggleBtn.classList.remove("logged-in");
         
-        // Hide dropdown
+        // Hide dropdown and reset avatar
         if (userDropdownMenu) userDropdownMenu.classList.add("hidden");
+        if (avatarImgEl) {
+            avatarImgEl.src = "";
+            avatarImgEl.classList.add("hidden");
+        }
         
         lucide.createIcons();
     }
@@ -1394,6 +1417,83 @@ function setupAuthEventListeners() {
     const googleLoginBtn = document.getElementById("google-login-btn");
     const emailLoginForm = document.getElementById("email-login-form");
     const userDropdownMenu = document.getElementById("user-dropdown-menu");
+
+    // Signup/Login Mode Toggle
+    const signupTrigger = document.getElementById("signup-trigger");
+    const signupNameGroup = document.getElementById("signup-name-group");
+    const signupPhoneGroup = document.getElementById("signup-phone-group");
+    const signupConfirmPasswordGroup = document.getElementById("signup-confirm-password-group");
+    const emailLoginFormBtn = emailLoginForm ? emailLoginForm.querySelector("button[type='submit']") : null;
+    const toggleSignupMsg = document.getElementById("toggle-signup-msg");
+    const loginNameInput = document.getElementById("login-name");
+    const loginConfirmPasswordInput = document.getElementById("login-confirm-password");
+    
+    let authMode = "login"; // 'login' or 'signup'
+
+    if (signupTrigger) {
+        signupTrigger.addEventListener("click", (e) => {
+            e.preventDefault();
+            const errorMsg = document.getElementById("email-login-error");
+            if (errorMsg) errorMsg.classList.add("hidden");
+
+            if (authMode === "login") {
+                authMode = "signup";
+                if (signupNameGroup) signupNameGroup.classList.remove("hidden");
+                if (signupPhoneGroup) signupPhoneGroup.classList.remove("hidden");
+                if (signupConfirmPasswordGroup) signupConfirmPasswordGroup.classList.remove("hidden");
+                if (emailLoginFormBtn) emailLoginFormBtn.textContent = "Sign Up";
+                signupTrigger.textContent = "Sign In";
+                if (toggleSignupMsg) toggleSignupMsg.innerHTML = `Already have an account? <a href="#" id="signup-trigger" class="accent-link">Sign In</a>`;
+                if (loginNameInput) loginNameInput.setAttribute("required", "required");
+                if (loginConfirmPasswordInput) loginConfirmPasswordInput.setAttribute("required", "required");
+            } else {
+                authMode = "login";
+                if (signupNameGroup) signupNameGroup.classList.add("hidden");
+                if (signupPhoneGroup) signupPhoneGroup.classList.add("hidden");
+                if (signupConfirmPasswordGroup) signupConfirmPasswordGroup.classList.add("hidden");
+                if (emailLoginFormBtn) emailLoginFormBtn.textContent = "Sign In";
+                signupTrigger.textContent = "Sign Up";
+                if (toggleSignupMsg) toggleSignupMsg.innerHTML = `New to Leno-Raa? <a href="#" id="signup-trigger" class="accent-link">Sign Up</a>`;
+                if (loginNameInput) loginNameInput.removeAttribute("required");
+                if (loginConfirmPasswordInput) loginConfirmPasswordInput.removeAttribute("required");
+            }
+            setupSignupToggler();
+        });
+    }
+
+    function setupSignupToggler() {
+        const newTrigger = document.getElementById("signup-trigger");
+        if (newTrigger) {
+            newTrigger.addEventListener("click", (e) => {
+                e.preventDefault();
+                const errorMsg = document.getElementById("email-login-error");
+                if (errorMsg) errorMsg.classList.add("hidden");
+
+                if (authMode === "login") {
+                    authMode = "signup";
+                    if (signupNameGroup) signupNameGroup.classList.remove("hidden");
+                    if (signupPhoneGroup) signupPhoneGroup.classList.remove("hidden");
+                    if (signupConfirmPasswordGroup) signupConfirmPasswordGroup.classList.remove("hidden");
+                    if (emailLoginFormBtn) emailLoginFormBtn.textContent = "Sign Up";
+                    newTrigger.textContent = "Sign In";
+                    if (toggleSignupMsg) toggleSignupMsg.innerHTML = `Already have an account? <a href="#" id="signup-trigger" class="accent-link">Sign In</a>`;
+                    if (loginNameInput) loginNameInput.setAttribute("required", "required");
+                    if (loginConfirmPasswordInput) loginConfirmPasswordInput.setAttribute("required", "required");
+                } else {
+                    authMode = "login";
+                    if (signupNameGroup) signupNameGroup.classList.add("hidden");
+                    if (signupPhoneGroup) signupPhoneGroup.classList.add("hidden");
+                    if (signupConfirmPasswordGroup) signupConfirmPasswordGroup.classList.add("hidden");
+                    if (emailLoginFormBtn) emailLoginFormBtn.textContent = "Sign In";
+                    newTrigger.textContent = "Sign Up";
+                    if (toggleSignupMsg) toggleSignupMsg.innerHTML = `New to Leno-Raa? <a href="#" id="signup-trigger" class="accent-link">Sign Up</a>`;
+                    if (loginNameInput) loginNameInput.removeAttribute("required");
+                    if (loginConfirmPasswordInput) loginConfirmPasswordInput.removeAttribute("required");
+                }
+                setupSignupToggler();
+            });
+        }
+    }
 
     // Login modal toggler
     if (loginToggleBtn) {
@@ -1420,197 +1520,794 @@ function setupAuthEventListeners() {
         }
     });
 
-    // Logout
+    // Logout trigger
     if (logoutBtn) {
-        logoutBtn.addEventListener("click", () => {
+        logoutBtn.addEventListener("click", async () => {
+            showToast("Signing out securely...");
+            await window.LenoRaaAPI.logout();
+            
+            // Clear local state and cache
             currentUser = null;
+            cart = [];
+            wishlist = [];
             localStorage.removeItem("lenora_user");
+            localStorage.removeItem("lenora_cart");
+            localStorage.removeItem("lenora_wishlist");
+            localStorage.removeItem("lenora_addresses");
+            localStorage.removeItem("lenora_notifications");
+            localStorage.removeItem("lenora_search_history");
+            localStorage.removeItem("lenora_recently_viewed");
+            
             updateAuthUI();
+            if (typeof renderCart === 'function') renderCart();
+            if (typeof renderWishlist === 'function') renderWishlist();
+            if (typeof renderProducts === 'function') renderProducts();
+            
             showToast("Logged out successfully.");
+            closeProfileModal();
+            openLoginModal();
         });
     }
 
-    let tempGoogleEmail = "";
-
-    // Google Sign in trigger (Starts email screen)
-    if (googleLoginBtn) {
-        googleLoginBtn.addEventListener("click", () => {
-            document.getElementById("google-email-input").value = "";
-            document.getElementById("google-password-input").value = "";
-            document.getElementById("google-email-error").classList.add("hidden");
-            document.getElementById("google-password-error").classList.add("hidden");
-            
-            document.getElementById("standard-login-box").classList.add("hidden");
-            document.getElementById("google-email-screen").classList.remove("hidden");
+    // Password visibility toggler
+    const loginTogglePasswordBtn = document.getElementById("login-toggle-password-btn");
+    if (loginTogglePasswordBtn) {
+        loginTogglePasswordBtn.addEventListener("click", () => {
+            const passInput = document.getElementById("login-password");
+            const eyeIcon = document.getElementById("login-pass-eye-icon");
+            if (passInput && eyeIcon) {
+                const isPass = passInput.getAttribute("type") === "password";
+                passInput.setAttribute("type", isPass ? "text" : "password");
+                eyeIcon.setAttribute("data-lucide", isPass ? "eye-off" : "eye");
+                lucide.createIcons();
+            }
         });
     }
 
-    // Google Next button (Validates Email)
-    const emailNextBtn = document.getElementById("google-email-next-btn");
-    const emailInput = document.getElementById("google-email-input");
-    const emailError = document.getElementById("google-email-error");
-
-    if (emailNextBtn) {
-        emailNextBtn.addEventListener("click", (e) => {
+    // Forgot Password link handler
+    const forgotPasswordLink = document.getElementById("forgot-password-link");
+    if (forgotPasswordLink) {
+        forgotPasswordLink.addEventListener("click", async (e) => {
             e.preventDefault();
-            const emailVal = emailInput.value.trim().toLowerCase();
-            
-            // Simple Google-like email verification
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
+            const emailVal = document.getElementById("login-email").value.trim();
             if (!emailVal) {
-                emailError.textContent = "Enter an email or phone number";
-                emailError.classList.remove("hidden");
-                emailInput.focus();
-            } else if (!emailRegex.test(emailVal)) {
-                emailError.textContent = "Enter a valid email address";
-                emailError.classList.remove("hidden");
-                emailInput.focus();
+                showToast("Please enter your email address first.", "error");
+                document.getElementById("login-email").focus();
+                return;
+            }
+            showToast("Sending reset link...");
+            const res = await window.LenoRaaAPI.forgotPassword(emailVal);
+            if (res.success) {
+                showToast("Password reset link sent to your email!");
             } else {
-                emailError.classList.add("hidden");
-                tempGoogleEmail = emailVal;
-                document.getElementById("google-selected-email-display").textContent = emailVal;
-                
-                document.getElementById("google-email-screen").classList.add("hidden");
-                document.getElementById("google-password-screen").classList.remove("hidden");
-                
-                const passInput = document.getElementById("google-password-input");
-                passInput.value = "";
-                passInput.focus();
+                showToast(res.error, "error");
             }
         });
     }
 
-    // Back to email screen when clicking email indicator
-    const emailPillBtn = document.getElementById("google-email-pill-btn");
-    if (emailPillBtn) {
-        emailPillBtn.addEventListener("click", () => {
-            document.getElementById("google-password-screen").classList.add("hidden");
-            document.getElementById("google-email-screen").classList.remove("hidden");
-            document.getElementById("google-email-error").classList.add("hidden");
-            emailInput.focus();
-        });
-    }
-
-    // Show/Hide password toggle
-    const togglePasswordBtn = document.getElementById("google-toggle-password-btn");
-    const passwordInput = document.getElementById("google-password-input");
-    const eyeIcon = document.getElementById("g-pass-eye-icon");
-
-    if (togglePasswordBtn) {
-        togglePasswordBtn.addEventListener("click", () => {
-            const isPass = passwordInput.getAttribute("type") === "password";
-            passwordInput.setAttribute("type", isPass ? "text" : "password");
-            eyeIcon.setAttribute("data-lucide", isPass ? "eye-off" : "eye");
-            lucide.createIcons();
-        });
-    }
-
-    // Google password Sign in submit
-    const signinSubmitBtn = document.getElementById("google-signin-submit-btn");
-    const passwordError = document.getElementById("google-password-error");
-
-    if (signinSubmitBtn) {
-        signinSubmitBtn.addEventListener("click", (e) => {
+    // Google Sign in trigger (Real Google OAuth redirect)
+    if (googleLoginBtn) {
+        googleLoginBtn.addEventListener("click", async (e) => {
             e.preventDefault();
-            const passVal = passwordInput.value;
-            const emailLower = tempGoogleEmail.toLowerCase().trim();
-
-            if (!passVal) {
-                passwordError.textContent = "Enter a password";
-                passwordError.classList.remove("hidden");
-                passwordInput.focus();
-            } else if (passVal.length < 6) {
-                passwordError.textContent = "Password must be at least 6 characters.";
-                passwordError.classList.remove("hidden");
-                passwordInput.focus();
-            } else {
-                passwordError.classList.add("hidden");
-                
-                // Extract name prefix dynamically
-                const prefix = tempGoogleEmail.split("@")[0];
-                const cleanWords = prefix.replace(/[._-]/g, " ").split(" ");
-                const name = cleanWords.map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
-
-                // Sync customer dynamically to localStorage database so they can use standard login too
-                registerCustomer(tempGoogleEmail, passVal, name);
-
-                // Hide screen and trigger loading animation
-                document.getElementById("google-password-screen").classList.add("hidden");
-                const loadingBox = document.getElementById("google-loading-box");
-                const loadingText = document.getElementById("google-loading-text");
-                loadingBox.classList.remove("hidden");
-                loadingText.textContent = `Verifying Google Account secure credentials...`;
-
-                setTimeout(() => {
-                    const initials = name.split(" ").map(w => w.charAt(0).toUpperCase()).join("").substring(0, 2);
-                    currentUser = {
-                        name: name,
-                        email: emailLower,
-                        avatar: initials
-                    };
-
-                    localStorage.setItem("lenora_user", JSON.stringify(currentUser));
-                    updateAuthUI();
-                    closeLoginModal();
-                    showToast(`Signed in securely as ${name}!`);
-
-                    if (pendingAuthAction) {
-                        pendingAuthAction();
-                        pendingAuthAction = null;
-                    }
-                }, 1800);
+            e.stopPropagation();
+            showToast("Redirecting to Google Auth...");
+            const res = await window.LenoRaaAPI.googleLogin();
+            if (res && !res.success) {
+                showToast("OAuth redirect failed: " + res.error, "error");
             }
         });
     }
 
-    // Email login submit simulation (Customer credential validation)
+    // Email login / signup form submit
     if (emailLoginForm) {
-        emailLoginForm.addEventListener("submit", (e) => {
+        emailLoginForm.addEventListener("submit", async (e) => {
             e.preventDefault();
             const emailVal = document.getElementById("login-email").value.trim().toLowerCase();
             const passVal = document.getElementById("login-password").value;
             const errorMsg = document.getElementById("email-login-error");
+            const submitBtn = emailLoginForm.querySelector("button[type='submit']");
+            const loadingBox = document.getElementById("google-loading-box");
 
-            const users = getRegisteredCustomers();
-            const foundCustomer = users.find(cust => cust.email === emailVal);
+            errorMsg.classList.add("hidden");
+            if (submitBtn) submitBtn.disabled = true;
 
-            if (!foundCustomer || foundCustomer.password !== passVal) {
-                // Wrong email or password for standard form
-                errorMsg.textContent = "Invalid customer email or password. Please try again.";
-                errorMsg.classList.remove("hidden");
-                document.getElementById("login-password").value = "";
-                document.getElementById("login-password").focus();
-            } else {
-                errorMsg.classList.add("hidden");
+            try {
+                if (!window.supabaseClient) {
+                    errorMsg.textContent = "Unable to connect to authentication server. Please check your internet connection.";
+                    errorMsg.classList.remove("hidden");
+                    if (submitBtn) submitBtn.disabled = false;
+                    return;
+                }
+                
+                if (authMode === "signup") {
+                    const nameVal = document.getElementById("login-name").value.trim();
+                    const phoneVal = document.getElementById("login-phone-number").value.trim();
+                    const confirmPassVal = document.getElementById("login-confirm-password").value;
 
-                const activeCustomer = foundCustomer;
-
-                // Trigger validation loading screen
-                document.getElementById("standard-login-box").classList.add("hidden");
-                const loadingBox = document.getElementById("google-loading-box");
-                const loadingText = document.getElementById("google-loading-text");
-                loadingBox.classList.remove("hidden");
-                loadingText.textContent = `Validating customer login credentials...`;
-
-                setTimeout(() => {
-                    const initials = activeCustomer.name.split(" ").map(w => w.charAt(0).toUpperCase()).join("").substring(0, 2);
-                    currentUser = {
-                        name: activeCustomer.name,
-                        email: activeCustomer.email,
-                        avatar: initials
-                    };
-                    localStorage.setItem("lenora_user", JSON.stringify(currentUser));
-                    updateAuthUI();
-                    closeLoginModal();
-                    showToast(`Welcome back, ${activeCustomer.name}!`);
-
-                    if (pendingAuthAction) {
-                        pendingAuthAction();
-                        pendingAuthAction = null;
+                    if (!nameVal) {
+                        errorMsg.textContent = "Please enter your Full Name.";
+                        errorMsg.classList.remove("hidden");
+                        if (submitBtn) submitBtn.disabled = false;
+                        return;
                     }
-                }, 1500);
+
+                    if (passVal !== confirmPassVal) {
+                        errorMsg.textContent = "Passwords do not match.";
+                        errorMsg.classList.remove("hidden");
+                        if (submitBtn) submitBtn.disabled = false;
+                        return;
+                    }
+
+                    document.getElementById("standard-login-box").classList.add("hidden");
+                    const loadingText = document.getElementById("google-loading-text");
+                    loadingBox.classList.remove("hidden");
+                    loadingText.textContent = `Creating secure account...`;
+
+                    const signupRes = await window.LenoRaaAPI.signup(emailVal, passVal, nameVal);
+                    if (!signupRes.success) {
+                        loadingBox.classList.add("hidden");
+                        document.getElementById("standard-login-box").classList.remove("hidden");
+                        errorMsg.textContent = signupRes.error;
+                        errorMsg.classList.remove("hidden");
+                        if (submitBtn) submitBtn.disabled = false;
+                        return;
+                    }
+
+                    // Log phone if exists
+                    if (phoneVal && signupRes.data?.user) {
+                        await window.supabaseClient
+                            .from('profiles')
+                            .update({ phone: phoneVal })
+                            .eq('auth_user_id', signupRes.data.user.id);
+                    }
+
+                    const loginRes = await window.LenoRaaAPI.login(emailVal, passVal);
+                    if (loginRes.success) {
+                        const user = await window.LenoRaaAPI.getCurrentUser();
+                        const initials = nameVal.split(" ").map(w => w.charAt(0).toUpperCase()).join("").substring(0, 2);
+                        currentUser = {
+                            name: nameVal,
+                            email: emailVal,
+                            phone: phoneVal || user?.phone || '',
+                            avatar: user?.profile_image || initials
+                        };
+                        localStorage.setItem("lenora_user", JSON.stringify(currentUser));
+                        updateAuthUI();
+                        await syncUserDataOnLogin(loginRes.data.user.id);
+                        
+                        loadingBox.classList.add("hidden");
+                        document.getElementById("standard-login-box").classList.remove("hidden");
+                        closeLoginModal();
+                        showToast(`Welcome to Leno-Raa, ${nameVal}!`);
+                    } else {
+                        loadingBox.classList.add("hidden");
+                        document.getElementById("standard-login-box").classList.remove("hidden");
+                        errorMsg.textContent = "Signup succeeded, but automatic login failed: " + loginRes.error;
+                        errorMsg.classList.remove("hidden");
+                    }
+                } else {
+                    // Sign In mode
+                    document.getElementById("standard-login-box").classList.add("hidden");
+                    const loadingText = document.getElementById("google-loading-text");
+                    loadingBox.classList.remove("hidden");
+                    loadingText.textContent = `Validating secure credentials...`;
+
+                    const loginRes = await window.LenoRaaAPI.login(emailVal, passVal);
+                    if (loginRes.success) {
+                        const user = await window.LenoRaaAPI.getCurrentUser();
+                        const initials = (user?.full_name || emailVal).split(" ").map(w => w.charAt(0).toUpperCase()).join("").substring(0, 2);
+                        currentUser = {
+                            name: user?.full_name || emailVal.split("@")[0],
+                            email: emailVal,
+                            phone: user?.phone || '',
+                            avatar: user?.profile_image || initials
+                        };
+                        localStorage.setItem("lenora_user", JSON.stringify(currentUser));
+                        updateAuthUI();
+                        await syncUserDataOnLogin(loginRes.data.user.id);
+                        
+                        loadingBox.classList.add("hidden");
+                        document.getElementById("standard-login-box").classList.remove("hidden");
+                        closeLoginModal();
+                        showToast(`Welcome back, ${currentUser.name}!`);
+                    } else {
+                        loadingBox.classList.add("hidden");
+                        document.getElementById("standard-login-box").classList.remove("hidden");
+                        
+                        // Specific auth failures
+                        if (loginRes.error.includes("Invalid login credentials")) {
+                            errorMsg.textContent = "Incorrect password or account details. Please try again.";
+                        } else if (loginRes.error.includes("Email not confirmed")) {
+                            errorMsg.textContent = "Email address not verified. Please check your inbox.";
+                        } else {
+                            errorMsg.textContent = loginRes.error;
+                        }
+                        errorMsg.classList.remove("hidden");
+                    }
+                }
+            } catch (err) {
+                console.error("Submit handler error:", err);
+                loadingBox.classList.add("hidden");
+                document.getElementById("standard-login-box").classList.remove("hidden");
+                errorMsg.textContent = "An unexpected error occurred: " + err.message;
+                errorMsg.classList.remove("hidden");
+            } finally {
+                if (submitBtn) submitBtn.disabled = false;
             }
         });
+    }
+
+    // Profile Dropdown buttons binders
+    const navProfileBtn = document.getElementById("nav-dropdown-profile-btn");
+    const navOrdersBtn = document.getElementById("nav-dropdown-orders-btn");
+    const navWishlistBtn = document.getElementById("nav-dropdown-wishlist-btn");
+    const navAddressesBtn = document.getElementById("nav-dropdown-addresses-btn");
+    const navNotifBtn = document.getElementById("nav-dropdown-notif-btn");
+
+    if (navProfileBtn) navProfileBtn.addEventListener("click", () => { openProfileModal('settings'); });
+    if (navOrdersBtn) navOrdersBtn.addEventListener("click", () => { openProfileModal('orders'); });
+    if (navWishlistBtn) navWishlistBtn.addEventListener("click", () => { openProfileModal('wishlist'); });
+    if (navAddressesBtn) navAddressesBtn.addEventListener("click", () => { openProfileModal('addresses'); });
+    if (navNotifBtn) navNotifBtn.addEventListener("click", () => {
+        const drawer = document.getElementById("notifications-drawer");
+        if (drawer) drawer.classList.add("active");
+        else showToast("Opening notifications drawer...");
+    });
+
+    // Close Profile Modal
+    const profileCloseBtn = document.getElementById("profile-close-btn");
+    const profileOverlay = document.getElementById("profile-modal-overlay");
+    if (profileCloseBtn) profileCloseBtn.addEventListener("click", closeProfileModal);
+    if (profileOverlay) profileOverlay.addEventListener("click", closeProfileModal);
+
+    // Profile Sidebar Tabs click
+    const profileNavItems = document.querySelectorAll(".profile-nav-item");
+    profileNavItems.forEach(item => {
+        item.addEventListener("click", () => {
+            const tabName = item.getAttribute("data-tab");
+            switchProfileTab(tabName);
+        });
+    });
+
+    // Profile Settings form submission
+    const profileSettingsForm = document.getElementById("profile-settings-form");
+    if (profileSettingsForm) {
+        profileSettingsForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const nameVal = document.getElementById("settings-name").value.trim();
+            const phoneVal = document.getElementById("settings-phone").value.trim();
+
+            if (!nameVal) {
+                showToast("Full Name is required.", "error");
+                return;
+            }
+
+            showToast("Saving changes...");
+            const res = await window.LenoRaaAPI.updateProfile({
+                fullName: nameVal,
+                phone: phoneVal
+            });
+
+            if (res.success) {
+                currentUser.name = nameVal;
+                currentUser.phone = phoneVal;
+                localStorage.setItem("lenora_user", JSON.stringify(currentUser));
+                updateAuthUI();
+                document.getElementById("profile-display-name").textContent = nameVal;
+                showToast("Profile settings saved successfully!");
+            } else {
+                showToast("Failed to save changes: " + res.error, "error");
+            }
+        });
+    }
+
+    // Profile address form togglers & submitters
+    const profileAddressForm = document.getElementById("profile-address-form");
+    const btnAddProfileAddress = document.getElementById("btn-add-profile-address");
+    const btnCancelAddr = document.getElementById("btn-cancel-addr");
+
+    if (btnAddProfileAddress) {
+        btnAddProfileAddress.addEventListener("click", () => {
+            profileAddressForm.classList.remove("hidden");
+        });
+    }
+
+    if (btnCancelAddr) {
+        btnCancelAddr.addEventListener("click", () => {
+            profileAddressForm.classList.add("hidden");
+            profileAddressForm.reset();
+        });
+    }
+
+    if (profileAddressForm) {
+        profileAddressForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const fullName = document.getElementById("addr-fullname").value.trim();
+            const phone = document.getElementById("addr-phone").value.trim();
+            const street = document.getElementById("addr-street").value.trim();
+            const city = document.getElementById("addr-city").value.trim();
+            const state = document.getElementById("addr-state").value.trim();
+            const pincode = document.getElementById("addr-pincode").value.trim();
+            const addressType = document.getElementById("addr-type").value;
+
+            try {
+                const { data: { user } } = await window.supabaseClient.auth.getUser();
+                if (!user) return;
+
+                showToast("Saving address...");
+                const { error } = await window.supabaseClient.from('addresses').insert({
+                    user_id: user.id,
+                    full_name: fullName,
+                    phone: phone,
+                    street: street,
+                    city: city,
+                    state: state,
+                    pincode: pincode,
+                    address_type: addressType
+                });
+
+                if (error) throw error;
+
+                showToast("Address saved successfully!");
+                profileAddressForm.reset();
+                profileAddressForm.classList.add("hidden");
+                loadProfileAddresses();
+            } catch (err) {
+                showToast("Failed to save address: " + err.message, "error");
+            }
+        });
+    }
+
+    // Avatar upload
+    const btnUploadAvatar = document.getElementById("btn-upload-avatar");
+    const avatarFileInput = document.getElementById("avatar-file-input");
+
+    if (btnUploadAvatar && avatarFileInput) {
+        btnUploadAvatar.addEventListener("click", () => {
+            avatarFileInput.click();
+        });
+
+        avatarFileInput.addEventListener("change", async () => {
+            const file = avatarFileInput.files[0];
+            if (!file) return;
+
+            try {
+                const { data: { user } } = await window.supabaseClient.auth.getUser();
+                if (!user) return;
+
+                showToast("Uploading photo...");
+                const fileExt = file.name.split('.').pop();
+                const filePath = `avatars/${user.id}-${Math.floor(Date.now() / 1000)}.${fileExt}`;
+
+                const { error: uploadError } = await window.supabaseClient.storage
+                    .from('profiles')
+                    .upload(filePath, file, { cacheControl: '3600', upsert: true });
+
+                if (uploadError) throw uploadError;
+
+                const { data: { publicUrl } } = window.supabaseClient.storage
+                    .from('profiles')
+                    .getPublicUrl(filePath);
+
+                const updateRes = await window.LenoRaaAPI.updateProfile({
+                    fullName: currentUser.name,
+                    phone: currentUser.phone,
+                    profileImage: publicUrl
+                });
+
+                if (!updateRes.success) throw new Error(updateRes.error);
+
+                currentUser.avatar = publicUrl;
+                localStorage.setItem("lenora_user", JSON.stringify(currentUser));
+                updateAuthUI();
+                
+                const profileAvatarImg = document.getElementById("profile-avatar-img");
+                if (profileAvatarImg) profileAvatarImg.src = publicUrl;
+
+                showToast("Profile image updated!");
+            } catch (err) {
+                showToast("Failed to upload avatar: " + err.message, "error");
+            }
+        });
+    }
+}
+
+// ==========================================================================
+// SESSION RESTORATION & USER DATA SYNC CONTROLLERS
+// ==========================================================================
+
+function setupAuthListener() {
+    if (window.supabaseClient) {
+        window.supabaseClient.auth.onAuthStateChange(async (event, session) => {
+            console.log(`app.js Auth State Change event: ${event}`);
+            if (session && (event === 'SIGNED_IN' || event === 'USER_UPDATED' || event === 'TOKEN_REFRESHED')) {
+                try {
+                    const user = session.user;
+                    
+                    // Fetch details from profiles table to make sure full_name is retrieved correctly
+                    const { data: profile } = await window.supabaseClient
+                        .from('profiles')
+                        .select('*')
+                        .eq('auth_user_id', user.id)
+                        .maybeSingle();
+
+                    const fullName = profile?.full_name || user.user_metadata?.full_name || user.user_metadata?.name || user.email.split("@")[0];
+                    const phone = profile?.phone || user.phone || '';
+                    const avatarUrl = profile?.avatar_url || profile?.profile_image || user.user_metadata?.avatar_url || '';
+                    
+                    const initials = fullName.split(" ").map(w => w[0]).join("").substring(0, 2).toUpperCase();
+                    
+                    currentUser = {
+                        name: fullName,
+                        email: user.email,
+                        phone: phone,
+                        avatar: avatarUrl || initials
+                    };
+                    
+                    localStorage.setItem("lenora_user", JSON.stringify(currentUser));
+                    updateAuthUI();
+                    
+                    // Hide loaders in the modal
+                    const loadingBox = document.getElementById("google-loading-box");
+                    if (loadingBox) loadingBox.classList.add("hidden");
+                    const standardLoginBox = document.getElementById("standard-login-box");
+                    if (standardLoginBox) standardLoginBox.classList.remove("hidden");
+                    
+                    // Load user data
+                    await syncUserDataOnLogin(user.id);
+                    
+                    closeLoginModal();
+                    
+                    // Redirect to home page
+                    window.location.hash = "#home";
+                    const homeSec = document.getElementById("home");
+                    if (homeSec) homeSec.scrollIntoView({ behavior: "smooth" });
+                } catch (err) {
+                    console.error("Error inside app.js onAuthStateChange handler:", err);
+                    // Hide loader on error so it doesn't get stuck!
+                    const loadingBox = document.getElementById("google-loading-box");
+                    if (loadingBox) loadingBox.classList.add("hidden");
+                    const standardLoginBox = document.getElementById("standard-login-box");
+                    if (standardLoginBox) standardLoginBox.classList.remove("hidden");
+                }
+            } else if (event === 'SIGNED_OUT') {
+                currentUser = null;
+                localStorage.removeItem("lenora_user");
+                updateAuthUI();
+            }
+        });
+    }
+}
+
+async function syncUserDataOnLogin(userId) {
+    try {
+        console.log("Automatically restoring user data from Supabase for ID:", userId);
+
+        // 1. Sync Cart
+        const remoteCart = await window.LenoRaaAPI.loadCart();
+        if (remoteCart && remoteCart.length > 0) {
+            cart = remoteCart;
+            localStorage.setItem("lenora_cart", JSON.stringify(cart));
+            if (typeof renderCart === 'function') renderCart();
+            if (typeof updateBadges === 'function') updateBadges();
+        }
+
+        // 2. Sync Wishlist
+        const remoteWishlist = await window.LenoRaaAPI.loadWishlist();
+        if (remoteWishlist && remoteWishlist.length > 0) {
+            wishlist = remoteWishlist;
+            localStorage.setItem("lenora_wishlist", JSON.stringify(wishlist));
+            if (typeof renderWishlist === 'function') renderWishlist();
+            if (typeof renderProducts === 'function') renderProducts();
+        }
+
+        // 3. Sync Addresses
+        if (window.supabaseClient) {
+            const { data: addresses } = await window.supabaseClient
+                .from('addresses')
+                .select('*')
+                .eq('user_id', userId);
+            if (addresses) {
+                localStorage.setItem("lenora_addresses", JSON.stringify(addresses));
+            }
+
+            // 4. Sync Notifications
+            const { data: notifications } = await window.supabaseClient
+                .from('notifications')
+                .select('*')
+                .eq('user_id', userId)
+                .order('created_at', { ascending: false });
+            if (notifications) {
+                localStorage.setItem("lenora_notifications", JSON.stringify(notifications));
+                const unreadCount = notifications.filter(n => !n.is_read).length;
+                const notifBadge = document.getElementById("notif-unread-badge");
+                if (notifBadge) {
+                    if (unreadCount > 0) {
+                        notifBadge.textContent = unreadCount;
+                        notifBadge.classList.remove("hidden");
+                    } else {
+                        notifBadge.classList.add("hidden");
+                    }
+                }
+            }
+
+            // 5. Sync Search History
+            const { data: searchHistory } = await window.supabaseClient
+                .from('search_history')
+                .select('*')
+                .eq('user_id', userId)
+                .order('created_at', { ascending: false });
+            if (searchHistory) {
+                localStorage.setItem("lenora_search_history", JSON.stringify(searchHistory));
+            }
+
+            // 6. Sync Recently Viewed
+            const { data: recentlyViewed } = await window.supabaseClient
+                .from('recently_viewed')
+                .select('*')
+                .eq('user_id', userId)
+                .order('created_at', { ascending: false });
+            if (recentlyViewed) {
+                localStorage.setItem("lenora_recently_viewed", JSON.stringify(recentlyViewed));
+            }
+        }
+
+        // 7. Log Activity
+        await window.LenoRaaAPI.logActivity("SESSION_RESTORED", { timestamp: new Date().toISOString() });
+
+    } catch (e) {
+        console.warn("Failed to automatically sync user data:", e.message);
+    }
+}
+
+// ==========================================================================
+// PROFILE MODAL DISPLAY UTILITIES
+// ==========================================================================
+
+function openProfileModal(defaultTab = 'settings') {
+    const modal = document.getElementById("profile-modal");
+    if (!modal) return;
+
+    modal.classList.add("active");
+    switchProfileTab(defaultTab);
+    
+    const user = currentUser;
+    if (user) {
+        document.getElementById("profile-display-name").textContent = user.name || "Doctor Member";
+        document.getElementById("settings-name").value = user.name || "";
+        document.getElementById("settings-email").value = user.email || "";
+        document.getElementById("settings-phone").value = user.phone || "";
+        
+        const avatarImg = document.getElementById("profile-avatar-img");
+        if (avatarImg) {
+            avatarImg.src = user.avatar && (user.avatar.startsWith('http') || user.avatar.includes('/')) 
+                ? user.avatar 
+                : "assets/default-avatar.png";
+        }
+    }
+}
+
+function closeProfileModal() {
+    const modal = document.getElementById("profile-modal");
+    if (modal) modal.classList.remove("active");
+}
+
+function switchProfileTab(tabName) {
+    const navItems = document.querySelectorAll(".profile-nav-item");
+    navItems.forEach(item => {
+        item.classList.remove("active");
+        item.style.background = "transparent";
+        item.style.fontWeight = "500";
+    });
+
+    const selectedItem = document.querySelector(`.profile-nav-item[data-tab="${tabName}"]`);
+    if (selectedItem) {
+        selectedItem.classList.add("active");
+        selectedItem.style.background = "var(--beige)";
+        selectedItem.style.fontWeight = "600";
+    }
+
+    const panels = document.querySelectorAll(".profile-tab-panel");
+    panels.forEach(panel => {
+        panel.classList.remove("active");
+        panel.classList.add("hidden");
+    });
+
+    const activePanel = document.getElementById(`profile-tab-${tabName}`);
+    if (activePanel) {
+        activePanel.classList.remove("hidden");
+        activePanel.classList.add("active");
+    }
+
+    if (tabName === 'addresses') {
+        loadProfileAddresses();
+    } else if (tabName === 'orders') {
+        loadProfileOrders();
+    } else if (tabName === 'wishlist') {
+        loadProfileWishlist();
+    }
+}
+
+async function loadProfileAddresses() {
+    const listContainer = document.getElementById("profile-addresses-list");
+    if (!listContainer) return;
+    listContainer.innerHTML = `<div style="text-align:center; padding:20px;"><div class="spinner" style="margin: 0 auto;"></div></div>`;
+
+    try {
+        const { data: { user } } = await window.supabaseClient.auth.getUser();
+        if (!user) return;
+
+        const { data: addresses, error } = await window.supabaseClient
+            .from('addresses')
+            .select('*')
+            .eq('user_id', user.id);
+
+        if (error) throw error;
+
+        listContainer.innerHTML = "";
+        if (!addresses || addresses.length === 0) {
+            listContainer.innerHTML = `<p style="text-align:center; color:var(--text-muted); font-size:0.8rem; padding: 20px 0;">No saved addresses found.</p>`;
+            return;
+        }
+
+        addresses.forEach(addr => {
+            const card = document.createElement("div");
+            card.style.background = "white";
+            card.style.padding = "15px 20px";
+            card.style.borderRadius = "12px";
+            card.style.border = "1px solid rgba(168,184,154,0.15)";
+            card.style.display = "flex";
+            card.style.justifyContent = "space-between";
+            card.style.alignItems = "center";
+            card.style.marginBottom = "10px";
+            
+            card.innerHTML = `
+                <div>
+                    <span style="font-weight:600; font-size:0.85rem; color:var(--dark-green);">${addr.full_name} (${addr.address_type})</span>
+                    <p style="font-size:0.78rem; color:var(--text-dark); margin:5px 0 0 0;">${addr.street}, ${addr.city}, ${addr.state} - ${addr.pincode}</p>
+                    <p style="font-size:0.72rem; color:var(--text-muted); margin:3px 0 0 0;">Phone: ${addr.phone}</p>
+                </div>
+                <button class="btn btn-secondary btn-sm btn-delete-address" data-id="${addr.id}" style="padding:6px 10px; font-size:0.7rem;"><i data-lucide="trash-2" style="width:12px; height:12px;"></i></button>
+            `;
+            listContainer.appendChild(card);
+        });
+
+        listContainer.querySelectorAll(".btn-delete-address").forEach(btn => {
+            btn.addEventListener("click", async (e) => {
+                const addrId = btn.getAttribute("data-id");
+                if (confirm("Are you sure you want to delete this address?")) {
+                    const { error } = await window.supabaseClient.from('addresses').delete().eq('id', addrId);
+                    if (error) {
+                        showToast("Failed to delete address: " + error.message, "error");
+                    } else {
+                        showToast("Address deleted successfully!");
+                        loadProfileAddresses();
+                    }
+                }
+            });
+        });
+        lucide.createIcons();
+    } catch (e) {
+        listContainer.innerHTML = `<p style="color:red; font-size:0.8rem; text-align:center;">Error loading addresses: ${e.message}</p>`;
+    }
+}
+
+async function loadProfileOrders() {
+    const listContainer = document.getElementById("profile-orders-list");
+    if (!listContainer) return;
+    listContainer.innerHTML = `<div style="text-align:center; padding:20px;"><div class="spinner" style="margin: 0 auto;"></div></div>`;
+
+    try {
+        const { data: { user } } = await window.supabaseClient.auth.getUser();
+        if (!user) return;
+
+        const { data: orders, error } = await window.supabaseClient
+            .from('orders')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        listContainer.innerHTML = "";
+        if (!orders || orders.length === 0) {
+            listContainer.innerHTML = `
+                <div style="text-align:center; padding:30px 0; color:var(--text-muted);">
+                    <i data-lucide="package" style="width:40px; height:40px; margin-bottom:10px;"></i>
+                    <p style="font-size:0.8rem;">You haven't placed any orders yet.</p>
+                </div>
+            `;
+            lucide.createIcons();
+            return;
+        }
+
+        orders.forEach(order => {
+            const card = document.createElement("div");
+            card.style.background = "white";
+            card.style.padding = "18px 20px";
+            card.style.borderRadius = "12px";
+            card.style.border = "1px solid rgba(168,184,154,0.15)";
+            card.style.marginBottom = "10px";
+            
+            const dateStr = new Date(order.created_at).toLocaleDateString();
+            card.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <span style="font-weight:600; font-size:0.85rem; color:var(--dark-green);">Order ID: #${order.order_id.substring(0,8)}</span>
+                    <span style="font-size:0.72rem; padding:3px 8px; border-radius:4px; font-weight:600; background-color:${order.order_status === 'Delivered' ? '#ecfdf5' : '#fef3c7'}; color:${order.order_status === 'Delivered' ? '#10b981' : '#d97706'};">${order.order_status}</span>
+                </div>
+                <div style="font-size:0.78rem; color:var(--text-dark);">
+                    <p style="margin:2px 0;">Date: ${dateStr}</p>
+                    <p style="margin:2px 0;">Total Amount: ₹${order.total_amount}</p>
+                    <p style="margin:2px 0;">Delivery Address: ${order.shipping_address || 'Standard Address'}</p>
+                </div>
+            `;
+            listContainer.appendChild(card);
+        });
+    } catch (e) {
+        listContainer.innerHTML = `<p style="color:red; font-size:0.8rem; text-align:center;">Error loading orders: ${e.message}</p>`;
+    }
+}
+
+async function loadProfileWishlist() {
+    const gridContainer = document.getElementById("profile-wishlist-grid");
+    if (!gridContainer) return;
+    gridContainer.innerHTML = `<div style="text-align:center; padding:20px; grid-column: 1/-1;"><div class="spinner" style="margin: 0 auto;"></div></div>`;
+
+    try {
+        const { data: { user } } = await window.supabaseClient.auth.getUser();
+        if (!user) return;
+
+        const { data: wishlistItems, error } = await window.supabaseClient
+            .from('wishlist')
+            .select('*')
+            .eq('user_id', user.id);
+
+        if (error) throw error;
+
+        gridContainer.innerHTML = "";
+        if (!wishlistItems || wishlistItems.length === 0) {
+            gridContainer.innerHTML = `<p style="text-align:center; color:var(--text-muted); font-size:0.8rem; grid-column: 1/-1; padding:20px 0;">Your wishlist is empty.</p>`;
+            return;
+        }
+
+        wishlistItems.forEach(item => {
+            const card = document.createElement("div");
+            card.style.background = "white";
+            card.style.padding = "15px";
+            card.style.borderRadius = "12px";
+            card.style.border = "1px solid rgba(168,184,154,0.15)";
+            card.style.display = "flex";
+            card.style.flexDirection = "column";
+            card.style.alignItems = "center";
+            card.style.textAlign = "center";
+
+            card.innerHTML = `
+                <img src="${item.product_image || 'assets/default-product.jpg'}" alt="${item.product_name}" style="width:100%; height:120px; object-fit:cover; border-radius:8px; margin-bottom:10px;">
+                <h5 style="font-size:0.8rem; color:var(--dark-green); margin:5px 0; font-weight:600;">${item.product_name}</h5>
+                <p style="font-size:0.75rem; color:var(--gold); margin:0 0 10px 0; font-weight:500;">₹${item.product_price || 0}</p>
+                <button class="btn btn-secondary btn-sm btn-remove-wishlist" data-id="${item.id}" style="padding:6px 10px; font-size:0.7rem; width:100%;">Remove</button>
+            `;
+            gridContainer.appendChild(card);
+        });
+
+        gridContainer.querySelectorAll(".btn-remove-wishlist").forEach(btn => {
+            btn.addEventListener("click", async (e) => {
+                const wishId = btn.getAttribute("data-id");
+                const { error } = await window.supabaseClient.from('wishlist').delete().eq('id', wishId);
+                if (error) {
+                    showToast("Failed to remove item: " + error.message, "error");
+                } else {
+                    showToast("Item removed from wishlist!");
+                    loadProfileWishlist();
+                    
+                    wishlist = wishlist.filter(item => item.id !== wishId);
+                    localStorage.setItem("lenora_wishlist", JSON.stringify(wishlist));
+                    if (typeof renderWishlist === 'function') renderWishlist();
+                    if (typeof renderProducts === 'function') renderProducts();
+                }
+            });
+        });
+    } catch (e) {
+        gridContainer.innerHTML = `<p style="color:red; font-size:0.8rem; text-align:center; grid-column: 1/-1;">Error loading wishlist: ${e.message}</p>`;
     }
 }

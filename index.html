@@ -66,13 +66,20 @@
                     </button>
                     <!-- Logged in state dropdown -->
                     <div class="user-dropdown-menu hidden" id="user-dropdown-menu">
-                        <div class="user-dropdown-header">
-                            <span class="user-display-name" id="user-display-name">Guest User</span>
-                            <span class="user-display-email" id="user-display-email">guest@example.com</span>
+                        <div class="user-dropdown-header" style="display:flex; align-items:center; gap:12px; padding: 12px 15px;">
+                            <img src="" id="user-display-avatar" alt="Avatar" class="hidden" style="width:36px; height:36px; border-radius:50%; object-fit:cover; border:2px solid var(--accent-light);">
+                            <div style="display:flex; flex-direction:column; overflow:hidden;">
+                                <span class="user-display-name" id="user-display-name" style="font-weight:600; font-size:0.9rem; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">Guest User</span>
+                                <span class="user-display-email" id="user-display-email" style="font-size:0.75rem; color:var(--text-muted); white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">guest@example.com</span>
+                            </div>
                         </div>
                         <hr class="dropdown-divider">
-                        <a href="#customize" class="dropdown-item" id="nav-dropdown-customize-btn"><i data-lucide="sparkles"></i> Customize Soap</a>
-                        <button class="dropdown-item" id="logout-btn"><i data-lucide="log-out"></i> Sign Out</button>
+                        <button class="dropdown-item" id="nav-dropdown-profile-btn"><i data-lucide="user"></i> My Profile</button>
+                        <button class="dropdown-item" id="nav-dropdown-orders-btn"><i data-lucide="shopping-bag"></i> My Orders</button>
+                        <button class="dropdown-item" id="nav-dropdown-wishlist-btn"><i data-lucide="heart"></i> Wishlist</button>
+                        <button class="dropdown-item" id="nav-dropdown-addresses-btn"><i data-lucide="map-pin"></i> Addresses</button>
+                        <button class="dropdown-item" id="nav-dropdown-notif-btn"><i data-lucide="bell"></i> Notifications</button>
+                        <button class="dropdown-item" id="logout-btn"><i data-lucide="log-out"></i> Logout</button>
                     </div>
                 </div>
 
@@ -165,7 +172,7 @@
                 <!-- Image Side -->
                 <div class="about-image-wrapper">
                     <div class="about-image-frame">
-                        <img src="assets/handmade_process.jpg" alt="Leno-Raa Cold Process soap curing and cutting" class="about-img" loading="lazy">
+                        <img src="assets/coffee.png" alt="Leno-Raa Cold Process soap curing and cutting" class="about-img" loading="lazy">
                         <div class="about-floating-badge">
                             <span class="badge-num">100%</span>
                             <span class="badge-txt">Pure Organic</span>
@@ -876,22 +883,52 @@
 
                 <!-- Fallback Email Sign In Form -->
                 <form id="email-login-form">
+                    <div class="form-group hidden" id="signup-name-group">
+                        <input type="text" id="login-name" placeholder=" " autocomplete="name">
+                        <label for="login-name">Full Name</label>
+                        <span class="focus-line"></span>
+                    </div>
                     <div class="form-group">
                         <input type="email" id="login-email" placeholder=" " required autocomplete="email">
                         <label for="login-email">Email Address</label>
                         <span class="focus-line"></span>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group hidden" id="signup-phone-group">
+                        <input type="tel" id="login-phone-number" placeholder=" " autocomplete="tel">
+                        <label for="login-phone-number">Phone Number</label>
+                        <span class="focus-line"></span>
+                    </div>
+                    <div class="form-group" style="position:relative;">
                         <input type="password" id="login-password" placeholder=" " required autocomplete="current-password">
                         <label for="login-password">Password</label>
                         <span class="focus-line"></span>
+                        <button type="button" id="login-toggle-password-btn" aria-label="Toggle Password" style="position:absolute; right:15px; top:50%; transform:translateY(-50%); border:none; background:transparent; cursor:pointer; color:var(--text-muted); display:flex; align-items:center; justify-content:center;">
+                            <i data-lucide="eye" id="login-pass-eye-icon" style="width:16px; height:16px;"></i>
+                        </button>
                     </div>
+                    <div class="form-group hidden" id="signup-confirm-password-group">
+                        <input type="password" id="login-confirm-password" placeholder=" " autocomplete="new-password">
+                        <label for="login-confirm-password">Confirm Password</label>
+                        <span class="focus-line"></span>
+                    </div>
+                    
+                    <div class="login-options" style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px; font-size:0.78rem; padding: 0 5px;">
+                        <label class="checkbox-container" style="display:flex; align-items:center; gap:6px; cursor:pointer; color:var(--text-dark);">
+                            <input type="checkbox" id="login-remember-me" style="cursor:pointer;" checked>
+                            <span>Remember Me</span>
+                        </label>
+                        <a href="#" id="forgot-password-link" class="accent-link">Forgot Password?</a>
+                    </div>
+                    
                     <span class="google-error-msg hidden" id="email-login-error" style="margin-bottom: 15px; text-align: center; display: block;"></span>
                     <button type="submit" class="btn btn-primary btn-block">Sign In</button>
                 </form>
 
                 <div class="login-footer">
-                    <p>New to Leno-Raa? <a href="#contact" id="signup-trigger" class="accent-link">Contact for Doctor Membership</a></p>
+                    <p id="toggle-signup-msg">New to Leno-Raa? <a href="#" id="signup-trigger" class="accent-link">Sign Up</a></p>
+                    <p class="terms-privacy" style="font-size:0.68rem; color:var(--text-muted); text-align:center; margin-top:20px;">
+                        By continuing, you agree to Leno-Raa's <a href="#contact" class="accent-link">Terms of Service</a> & <a href="#contact" class="accent-link">Privacy Policy</a>
+                    </p>
                 </div>
             </div>
             
@@ -981,6 +1018,158 @@
             </div>
         </div>
     </div>
+
+    <!-- PROFILE MODAL -->
+    <div class="profile-modal" id="profile-modal" style="position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:9999; display:flex; align-items:center; justify-content:center; visibility:hidden; opacity:0; transition:var(--transition-smooth); pointer-events:none;">
+        <div class="profile-modal-overlay" id="profile-modal-overlay" style="position:absolute; top:0; left:0; width:100%; height:100%; background-color:rgba(30,41,32,0.45); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);"></div>
+        <div class="profile-modal-content" style="position:relative; background:rgba(255,255,255,0.92); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border-radius:28px; width:calc(100% - 40px); max-width:900px; height:85vh; padding:40px; box-shadow:0 25px 60px rgba(30,41,32,0.2); z-index:10000; transform:translateY(30px); border:1px solid rgba(255,255,255,0.4); transition:var(--transition-smooth); overflow:hidden; display:flex; flex-direction:column; pointer-events:auto;">
+            <button class="modal-close-btn" id="profile-close-btn" aria-label="Close Profile" style="position:absolute; right:20px; top:20px; border:none; background:transparent; cursor:pointer; color:var(--dark-green); font-size:1.5rem;"><i data-lucide="x"></i></button>
+            
+            <div class="profile-layout" style="display:grid; grid-template-columns:250px 1fr; gap:35px; height:100%; overflow:hidden;">
+                <!-- Sidebar -->
+                <div class="profile-sidebar" style="display:flex; flex-direction:column; align-items:center; border-right:1px solid rgba(168,184,154,0.25); padding-right:25px;">
+                    <div class="profile-avatar-container" style="position:relative; margin-bottom:20px; width:120px; height:120px;">
+                        <img src="assets/default-avatar.png" id="profile-avatar-img" alt="Profile Image" style="width:120px; height:120px; border-radius:50%; object-fit:cover; border:3px solid var(--accent-light);">
+                        <button id="btn-upload-avatar" title="Upload Photo" style="position:absolute; bottom:5px; right:5px; background:var(--dark-green); color:white; border:none; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,0.15);"><i data-lucide="camera" style="width:14px; height:14px;"></i></button>
+                        <input type="file" id="avatar-file-input" class="hidden" accept="image/*">
+                    </div>
+                    <h3 id="profile-display-name" style="font-family:var(--font-heading); color:var(--dark-green); margin-bottom:5px; text-align:center;">Guest User</h3>
+                    <span id="profile-display-role" style="font-size:0.72rem; color:var(--gold); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:25px;">Doctor Member</span>
+                    
+                    <ul class="profile-nav" style="list-style:none; width:100%; display:flex; flex-direction:column; gap:8px;">
+                        <li class="profile-nav-item active" data-tab="settings" style="padding:10px 15px; border-radius:8px; font-size:0.8rem; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:10px; color:var(--dark-green); background:var(--beige);"><i data-lucide="settings" style="width:16px; height:16px;"></i> Account Settings</li>
+                        <li class="profile-nav-item" data-tab="orders" style="padding:10px 15px; border-radius:8px; font-size:0.8rem; font-weight:500; cursor:pointer; display:flex; align-items:center; gap:10px; color:var(--text-muted);"><i data-lucide="shopping-bag" style="width:16px; height:16px;"></i> Order History</li>
+                        <li class="profile-nav-item" data-tab="wishlist" style="padding:10px 15px; border-radius:8px; font-size:0.8rem; font-weight:500; cursor:pointer; display:flex; align-items:center; gap:10px; color:var(--text-muted);"><i data-lucide="heart" style="width:16px; height:16px;"></i> My Wishlist</li>
+                        <li class="profile-nav-item" data-tab="addresses" style="padding:10px 15px; border-radius:8px; font-size:0.8rem; font-weight:500; cursor:pointer; display:flex; align-items:center; gap:10px; color:var(--text-muted);"><i data-lucide="map-pin" style="width:16px; height:16px;"></i> Address Book</li>
+                    </ul>
+                </div>
+                
+                <!-- Content Area -->
+                <div class="profile-main-content" style="flex-grow:1; overflow-y:auto; padding-right:10px;">
+                    <!-- Settings Tab -->
+                    <div class="profile-tab-panel active" id="profile-tab-settings">
+                        <h4 style="font-family:var(--font-heading); color:var(--dark-green); margin-bottom:20px; font-size:1.2rem;">Account Settings</h4>
+                        <form id="profile-settings-form">
+                            <div class="form-group">
+                                <input type="text" id="settings-name" placeholder=" " required>
+                                <label for="settings-name">Full Name</label>
+                                <span class="focus-line"></span>
+                            </div>
+                            <div class="form-group">
+                                <input type="email" id="settings-email" placeholder=" " disabled style="background:#f5f4f0;">
+                                <label for="settings-email">Email Address</label>
+                                <span class="focus-line"></span>
+                            </div>
+                            <div class="form-group">
+                                <input type="tel" id="settings-phone" placeholder=" ">
+                                <label for="settings-phone">Phone Number</label>
+                                <span class="focus-line"></span>
+                            </div>
+                            <button type="submit" class="btn btn-primary" style="margin-top:15px;">Save Profile Changes</button>
+                        </form>
+                    </div>
+                    
+                    <!-- Orders Tab -->
+                    <div class="profile-tab-panel hidden" id="profile-tab-orders">
+                        <h4 style="font-family:var(--font-heading); color:var(--dark-green); margin-bottom:20px; font-size:1.2rem;">Order History</h4>
+                        <div id="profile-orders-list" style="display:flex; flex-direction:column; gap:15px;">
+                            <!-- Dynamic Orders list -->
+                            <div style="text-align:center; padding:30px 0; color:var(--text-muted);">
+                                <i data-lucide="package" style="width:40px; height:40px; margin-bottom:10px;"></i>
+                                <p>You haven't placed any orders yet.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Wishlist Tab -->
+                    <div class="profile-tab-panel hidden" id="profile-tab-wishlist">
+                        <h4 style="font-family:var(--font-heading); color:var(--dark-green); margin-bottom:20px; font-size:1.2rem;">My Wishlist</h4>
+                        <div id="profile-wishlist-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:20px;">
+                            <!-- Dynamic Wishlist products -->
+                        </div>
+                    </div>
+                    
+                    <!-- Addresses Tab -->
+                    <div class="profile-tab-panel hidden" id="profile-tab-addresses">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                            <h4 style="font-family:var(--font-heading); color:var(--dark-green); margin-bottom:0; font-size:1.2rem;">Address Book</h4>
+                            <button class="btn btn-secondary btn-sm" id="btn-add-profile-address" style="font-size:0.75rem;"><i data-lucide="plus"></i> Add Address</button>
+                        </div>
+                        
+                        <!-- Address Add Form (Hidden by default) -->
+                        <form id="profile-address-form" class="hidden" style="background:var(--beige); padding:20px; border-radius:12px; margin-bottom:20px; border:1px solid rgba(168,184,154,0.15);">
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+                                <div class="form-group">
+                                    <input type="text" id="addr-fullname" placeholder=" " required>
+                                    <label for="addr-fullname">Receiver Name</label>
+                                    <span class="focus-line"></span>
+                                </div>
+                                <div class="form-group">
+                                    <input type="tel" id="addr-phone" placeholder=" " required>
+                                    <label for="addr-phone">Phone Number</label>
+                                    <span class="focus-line"></span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <input type="text" id="addr-street" placeholder=" " required>
+                                <label for="addr-street">Street / Flat / House</label>
+                                <span class="focus-line"></span>
+                            </div>
+                            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;">
+                                <div class="form-group">
+                                    <input type="text" id="addr-city" placeholder=" " required>
+                                    <label for="addr-city">City</label>
+                                    <span class="focus-line"></span>
+                                </div>
+                                <div class="form-group">
+                                    <input type="text" id="addr-state" placeholder=" " required>
+                                    <label for="addr-state">State</label>
+                                    <span class="focus-line"></span>
+                                </div>
+                                <div class="form-group">
+                                    <input type="text" id="addr-pincode" placeholder=" " required>
+                                    <label for="addr-pincode">Pincode</label>
+                                    <span class="focus-line"></span>
+                                </div>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+                                <select id="addr-type" style="padding:8px 12px; border-radius:8px; border:1px solid var(--beige-dark); background:white;">
+                                    <option value="Home">Home</option>
+                                    <option value="Office">Office</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                                <div>
+                                    <button type="button" class="btn btn-secondary btn-sm" id="btn-cancel-addr" style="margin-right:8px;">Cancel</button>
+                                    <button type="submit" class="btn btn-primary btn-sm">Save Address</button>
+                                </div>
+                            </div>
+                        </form>
+
+                        <div id="profile-addresses-list" style="display:flex; flex-direction:column; gap:15px;">
+                            <!-- Dynamic addresses list -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supabase SDK and Custom JS API wrappers -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        if (!window.supabase) {
+            console.warn("jsDelivr CDN failed to load Supabase JS SDK. Attempting fallback to unpkg...");
+            document.write('<script src="https://unpkg.com/@supabase/supabase-js@2"><\/script>');
+        }
+    </script>
+    <script>
+        if (!window.supabase) {
+            console.warn("unpkg CDN failed to load Supabase JS SDK. Attempting fallback to cdnjs...");
+            document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/supabase/2.43.4/supabase.js"><\/script>');
+        }
+    </script>
+    <script src="supabase/supabaseClient.js"></script>
+    <script src="supabase/api.js"></script>
 
     <!-- Custom JS -->
     <script src="app.js"></script>

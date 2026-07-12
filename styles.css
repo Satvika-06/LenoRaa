@@ -3473,3 +3473,137 @@ a {
     color: #5f6368;
     margin-top: 2px;
 }
+
+/* Luxury skincare theme glassmorphism updates */
+.login-modal-content {
+    position: relative;
+    background: rgba(255, 255, 255, 0.85) !important;
+    backdrop-filter: blur(25px) !important;
+    -webkit-backdrop-filter: blur(25px) !important;
+    border-radius: 24px !important;
+    width: calc(100% - 40px);
+    max-width: 440px;
+    padding: 40px 35px !important;
+    box-shadow: 0 30px 70px rgba(30, 41, 32, 0.15) !important;
+    z-index: 10000;
+    transform: scale(0.95) translateY(20px);
+    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+}
+
+.login-modal.active .login-modal-content {
+    transform: scale(1) translateY(0);
+}
+
+/* Specific inputs for the auth form inside the modal */
+.login-modal-content .form-group {
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.login-modal-content .form-group input {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1px solid rgba(168, 184, 154, 0.35);
+    border-radius: 14px;
+    font-size: 0.88rem;
+    background: rgba(255, 255, 255, 0.65);
+    transition: var(--transition-smooth);
+    color: var(--text-dark);
+    font-family: var(--font-body);
+}
+
+.login-modal-content .form-group input:focus {
+    border-color: var(--dark-green);
+    background: var(--white);
+    box-shadow: 0 0 0 4px rgba(44, 73, 52, 0.06);
+    outline: none;
+}
+
+.login-modal-content .form-group label {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    transition: var(--transition-smooth);
+    pointer-events: none;
+}
+
+.login-modal-content .form-group input:focus ~ label,
+.login-modal-content .form-group input:not(:placeholder-shown) ~ label {
+    top: 0;
+    font-size: 0.72rem;
+    padding: 2px 6px;
+    background: var(--white);
+    border-radius: 4px;
+    color: var(--dark-green);
+    font-weight: 500;
+}
+
+/* Profile Page Modal Styling */
+.profile-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    visibility: hidden;
+    opacity: 0;
+    transition: var(--transition-smooth);
+}
+
+.profile-modal.active {
+    visibility: visible;
+    opacity: 1;
+}
+
+.profile-modal-content {
+    position: relative;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    border-radius: 28px;
+    width: calc(100% - 40px);
+    max-width: 900px;
+    height: 85vh;
+    padding: 40px;
+    box-shadow: 0 25px 60px rgba(30, 41, 32, 0.15);
+    z-index: 10000;
+    transform: scale(0.95) translateY(20px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+}
+
+.profile-modal.active .profile-modal-content {
+    transform: scale(1) translateY(0);
+}
+
+/* Tab Panel Transitions */
+.profile-tab-panel {
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    display: none;
+}
+
+.profile-tab-panel.active {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.profile-nav-item {
+    transition: var(--transition-smooth);
+}
+
+.profile-nav-item:hover {
+    color: var(--dark-green) !important;
+    background: rgba(168, 184, 154, 0.1);
+}
+
