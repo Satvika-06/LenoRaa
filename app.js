@@ -2305,6 +2305,24 @@ async function loadProfileOrders() {
             card.style.marginBottom = "10px";
             
             const dateStr = new Date(order.created_at).toLocaleDateString();
+            
+            let addressStr = 'Standard Address';
+            if (order.shipping_address) {
+                if (typeof order.shipping_address === 'object') {
+                    const addr = order.shipping_address;
+                    const parts = [
+                        addr.name,
+                        addr.street || addr.address,
+                        addr.city,
+                        addr.state,
+                        addr.pincode || addr.postal_code
+                    ].filter(Boolean);
+                    addressStr = parts.join(", ");
+                } else {
+                    addressStr = order.shipping_address;
+                }
+            }
+
             card.innerHTML = `
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                     <span style="font-weight:600; font-size:0.85rem; color:var(--dark-green);">Order ID: #${order.order_id.substring(0,8)}</span>
@@ -2313,7 +2331,7 @@ async function loadProfileOrders() {
                 <div style="font-size:0.78rem; color:var(--text-dark);">
                     <p style="margin:2px 0;">Date: ${dateStr}</p>
                     <p style="margin:2px 0;">Total Amount: ₹${order.total_amount}</p>
-                    <p style="margin:2px 0;">Delivery Address: ${order.shipping_address || 'Standard Address'}</p>
+                    <p style="margin:2px 0;">Delivery Address: ${addressStr}</p>
                 </div>
             `;
             listContainer.appendChild(card);
