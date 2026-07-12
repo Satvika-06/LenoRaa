@@ -752,9 +752,10 @@ function setupEventListeners() {
     });
 
     // Complete Purchase -> Show Success screen
-    document.getElementById("place-order-btn").addEventListener("click", () => {
+    document.getElementById("place-order-btn").addEventListener("click", async () => {
         // Validate credit card inputs if visible
-        const cardMethod = document.querySelector('input[name="payment-method"]:checked').value === "card";
+        const paymentMethod = document.querySelector('input[name="payment-method"]:checked').value;
+        const cardMethod = paymentMethod === "card";
         if (cardMethod) {
             const cardNum = document.getElementById("card-num").value;
             const cardExp = document.getElementById("card-exp").value;
@@ -765,17 +766,77 @@ function setupEventListeners() {
             }
         }
 
-        // Generate random order tracking ID
-        const orderIdVal = "#LR-" + Math.floor(100000 + Math.random() * 900000);
-        document.getElementById("success-order-id").textContent = orderIdVal;
+        const submitBtn = document.getElementById("place-order-btn");
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = "Processing order...";
+        }
 
-        // Clear shopping cart state
-        cart = [];
-        saveCart();
-        renderCart();
+        try {
+            const firstName = document.getElementById("chk-firstname").value.trim();
+            const lastName = document.getElementById("chk-lastname").value.trim();
+            const email = document.getElementById("chk-email").value.trim();
+            const phone = document.getElementById("chk-phone").value.trim();
+            const street = document.getElementById("chk-address").value.trim();
+            const city = document.getElementById("chk-city").value.trim();
+            const state = document.getElementById("chk-state").value.trim();
+            const pincode = document.getElementById("chk-pincode").value.trim();
 
-        // Switch to Step 3
-        goToCheckoutStep(3);
+            const shippingAddress = {
+                name: `${firstName} ${lastName}`,
+                email: email,
+                phone: phone,
+                street: street,
+                city: city,
+                state: state,
+                pincode: pincode,
+                country: 'India'
+            };
+
+            const subtotalText = document.getElementById("summary-subtotal").textContent;
+            const subtotal = parseInt(subtotalText.replace("₹", "")) || 0;
+            const shippingText = document.getElementById("summary-shipping").textContent;
+            const shipping = shippingText === "Free" ? 0 : (parseInt(shippingText.replace("₹", "")) || 0);
+            const codFee = paymentMethod === "cod" ? 40 : 0;
+            const grandTotal = subtotal + shipping + codFee;
+
+            const orderDetails = {
+                paymentMethod: paymentMethod === "card" ? "Credit Card" : "COD",
+                shippingAddress: shippingAddress,
+                billingAddress: shippingAddress,
+                subtotal: subtotal,
+                deliveryCharge: shipping + codFee,
+                discount: 0.00,
+                tax: 0.00,
+                totalAmount: grandTotal,
+                trackingNumber: "TRK" + Math.floor(100000 + Math.random() * 900000)
+            };
+
+            // Call backend API to save order in database
+            const res = await window.LenoRaaAPI.placeOrder(orderDetails, cart);
+            if (!res.success) {
+                throw new Error(res.error);
+            }
+
+            document.getElementById("success-order-id").textContent = res.orderId;
+            showToast("Order placed successfully!");
+
+            // Clear shopping cart state
+            cart = [];
+            saveCart();
+            renderCart();
+
+            // Switch to Step 3
+            goToCheckoutStep(3);
+        } catch (err) {
+            console.error("Order submission failed:", err);
+            showToast("Failed to place order: " + err.message, "error");
+        } finally {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = "Place Order";
+            }
+        }
     });
 
     // Finish checkout
