@@ -1857,12 +1857,17 @@ function getErrorMessage(error) {
     const navWishlistBtn = document.getElementById("nav-dropdown-wishlist-btn");
     const navAddressesBtn = document.getElementById("nav-dropdown-addresses-btn");
     const navNotifBtn = document.getElementById("nav-dropdown-notif-btn");
+    const userDropdown = document.getElementById("user-dropdown-menu");
+    
+    const closeUserDropdown = () => {
+        if (userDropdown) userDropdown.classList.add("hidden");
+    };
 
-    if (navProfileBtn) navProfileBtn.addEventListener("click", () => { openProfileModal('settings'); });
-    if (navOrdersBtn) navOrdersBtn.addEventListener("click", () => { openProfileModal('orders'); });
-    if (navWishlistBtn) navWishlistBtn.addEventListener("click", () => { openProfileModal('wishlist'); });
-    if (navAddressesBtn) navAddressesBtn.addEventListener("click", () => { openProfileModal('addresses'); });
-    if (navNotifBtn) navNotifBtn.addEventListener("click", () => { openProfileModal('notifications'); });
+    if (navProfileBtn) navProfileBtn.addEventListener("click", () => { closeUserDropdown(); openProfileModal('settings'); });
+    if (navOrdersBtn) navOrdersBtn.addEventListener("click", () => { closeUserDropdown(); openProfileModal('orders'); });
+    if (navWishlistBtn) navWishlistBtn.addEventListener("click", () => { closeUserDropdown(); openProfileModal('wishlist'); });
+    if (navAddressesBtn) navAddressesBtn.addEventListener("click", () => { closeUserDropdown(); openProfileModal('addresses'); });
+    if (navNotifBtn) navNotifBtn.addEventListener("click", () => { closeUserDropdown(); openProfileModal('notifications'); });
 
     // Close Profile Modal
     const profileCloseBtn = document.getElementById("profile-close-btn");
