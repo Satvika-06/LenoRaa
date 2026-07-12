@@ -1677,6 +1677,49 @@ function setupAuthEventListeners() {
         });
     }
 
+function getErrorMessage(error) {
+    if (!error) return "An unexpected error occurred. Please try again.";
+    
+    let message = "";
+    if (typeof error === 'string') {
+        message = error;
+    } else if (error.message) {
+        message = error.message;
+    } else {
+        try {
+            message = JSON.stringify(error);
+        } catch (e) {
+            message = error.toString();
+        }
+    }
+
+    if (message === "{}" || message === "null" || message === "undefined") {
+        return "An unexpected error occurred. Please check your details and try again.";
+    }
+
+    // Map common Supabase authentication errors to user-friendly messages
+    if (message.includes("User already registered") || message.includes("already exists")) {
+        return "This email address is already registered. Please sign in instead.";
+    }
+    if (message.includes("Password should be at least") || message.includes("weak password")) {
+        return "Password is too weak. It must be at least 6 characters.";
+    }
+    if (message.includes("Invalid login credentials") || message.includes("double check")) {
+        return "Incorrect email or password. Please check your details and try again.";
+    }
+    if (message.includes("Email not confirmed")) {
+        return "Your email address is not verified yet. Please check your inbox for the confirmation link.";
+    }
+    if (message.includes("Phone number already exists")) {
+        return "This phone number is already linked to another account.";
+    }
+    if (message.includes("Network error") || message.includes("fetch")) {
+        return "Network connection error. Please check your internet connection.";
+    }
+
+    return message;
+}
+
     // Email login / signup form submit
     if (emailLoginForm) {
         emailLoginForm.addEventListener("submit", async (e) => {
@@ -1726,7 +1769,7 @@ function setupAuthEventListeners() {
                     if (!signupRes.success) {
                         loadingBox.classList.add("hidden");
                         document.getElementById("standard-login-box").classList.remove("hidden");
-                        errorMsg.textContent = signupRes.error;
+                        errorMsg.textContent = getErrorMessage(signupRes.error);
                         errorMsg.classList.remove("hidden");
                         if (submitBtn) submitBtn.disabled = false;
                         return;
@@ -1761,7 +1804,7 @@ function setupAuthEventListeners() {
                     } else {
                         loadingBox.classList.add("hidden");
                         document.getElementById("standard-login-box").classList.remove("hidden");
-                        errorMsg.textContent = "Signup succeeded, but automatic login failed: " + loginRes.error;
+                        errorMsg.textContent = "Signup succeeded, but automatic login failed: " + getErrorMessage(loginRes.error);
                         errorMsg.classList.remove("hidden");
                     }
                 } else {
@@ -1792,15 +1835,7 @@ function setupAuthEventListeners() {
                     } else {
                         loadingBox.classList.add("hidden");
                         document.getElementById("standard-login-box").classList.remove("hidden");
-                        
-                        // Specific auth failures
-                        if (loginRes.error.includes("Invalid login credentials")) {
-                            errorMsg.textContent = "Incorrect password or account details. Please try again.";
-                        } else if (loginRes.error.includes("Email not confirmed")) {
-                            errorMsg.textContent = "Email address not verified. Please check your inbox.";
-                        } else {
-                            errorMsg.textContent = loginRes.error;
-                        }
+                        errorMsg.textContent = getErrorMessage(loginRes.error);
                         errorMsg.classList.remove("hidden");
                     }
                 }
@@ -1808,7 +1843,7 @@ function setupAuthEventListeners() {
                 console.error("Submit handler error:", err);
                 loadingBox.classList.add("hidden");
                 document.getElementById("standard-login-box").classList.remove("hidden");
-                errorMsg.textContent = "An unexpected error occurred: " + err.message;
+                errorMsg.textContent = "An unexpected error occurred: " + getErrorMessage(err);
                 errorMsg.classList.remove("hidden");
             } finally {
                 if (submitBtn) submitBtn.disabled = false;
@@ -1827,11 +1862,7 @@ function setupAuthEventListeners() {
     if (navOrdersBtn) navOrdersBtn.addEventListener("click", () => { openProfileModal('orders'); });
     if (navWishlistBtn) navWishlistBtn.addEventListener("click", () => { openProfileModal('wishlist'); });
     if (navAddressesBtn) navAddressesBtn.addEventListener("click", () => { openProfileModal('addresses'); });
-    if (navNotifBtn) navNotifBtn.addEventListener("click", () => {
-        const drawer = document.getElementById("notifications-drawer");
-        if (drawer) drawer.classList.add("active");
-        else showToast("Opening notifications drawer...");
-    });
+    if (navNotifBtn) navNotifBtn.addEventListener("click", () => { openProfileModal('notifications'); });
 
     // Close Profile Modal
     const profileCloseBtn = document.getElementById("profile-close-btn");
@@ -2200,6 +2231,8 @@ function switchProfileTab(tabName) {
         loadProfileOrders();
     } else if (tabName === 'wishlist') {
         loadProfileWishlist();
+    } else if (tabName === 'notifications') {
+        loadProfileNotifications();
     }
 }
 
@@ -2402,5 +2435,107 @@ async function loadProfileWishlist() {
         });
     } catch (e) {
         gridContainer.innerHTML = `<p style="color:red; font-size:0.8rem; text-align:center; grid-column: 1/-1;">Error loading wishlist: ${e.message}</p>`;
+    }
+}
+
+async function loadProfileNotifications() {
+    const listContainer = document.getElementById("profile-notifications-list");
+    if (!listContainer) return;
+    listContainer.innerHTML = `<div style="text-align:center; padding:20px;"><div class="spinner" style="margin: 0 auto;"></div></div>`;
+
+    try {
+        const { data: { user } } = await window.supabaseClient.auth.getUser();
+        if (!user) return;
+
+        const { data: notifications, error } = await window.supabaseClient
+            .from('notifications')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        listContainer.innerHTML = "";
+        if (!notifications || notifications.length === 0) {
+            listContainer.innerHTML = `
+                <div style="text-align:center; padding:30px 0; color:var(--text-muted);">
+                    <i data-lucide="bell" style="width:40px; height:40px; margin-bottom:10px; opacity:0.5; margin:0 auto;"></i>
+                    <p style="font-size:0.8rem;">You have no notifications at this time.</p>
+                </div>
+            `;
+            lucide.createIcons();
+            return;
+        }
+
+        notifications.forEach(notif => {
+            const card = document.createElement("div");
+            card.style.background = notif.is_read ? "white" : "var(--beige)";
+            card.style.padding = "15px 20px";
+            card.style.borderRadius = "12px";
+            card.style.border = "1px solid rgba(168,184,154,0.15)";
+            card.style.display = "flex";
+            card.style.flexDirection = "column";
+            card.style.gap = "5px";
+            card.style.marginBottom = "10px";
+            card.style.position = "relative";
+            card.style.transition = "background-color 0.3s ease";
+            
+            const dateStr = new Date(notif.created_at).toLocaleString();
+            card.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                    <span style="font-weight:600; font-size:0.85rem; color:var(--dark-green);">${notif.title}</span>
+                    <span style="font-size:0.65rem; color:var(--text-muted);">${dateStr}</span>
+                </div>
+                <p style="font-size:0.78rem; color:var(--text-dark); margin:0; padding-right:60px;">${notif.message}</p>
+                ${!notif.is_read ? `<button class="btn-mark-single-read" data-id="${notif.id}" style="position:absolute; right:15px; bottom:12px; border:none; background:transparent; font-size:0.68rem; color:var(--gold); font-weight:600; cursor:pointer;">Mark read</button>` : ''}
+            `;
+            
+            listContainer.appendChild(card);
+        });
+
+        // Add single mark-read listeners
+        listContainer.querySelectorAll(".btn-mark-single-read").forEach(btn => {
+            btn.addEventListener("click", async (e) => {
+                e.stopPropagation();
+                const notifId = btn.getAttribute("data-id");
+                try {
+                    const { error } = await window.supabaseClient
+                        .from('notifications')
+                        .update({ is_read: true })
+                        .eq('id', notifId);
+                    if (error) throw error;
+                    showToast("Notification marked as read!");
+                    loadProfileNotifications();
+                    await syncUserDataOnLogin(user.id);
+                } catch (err) {
+                    showToast("Failed to update notification: " + err.message, "error");
+                }
+            });
+        });
+
+        // Mark all as read button bind inside tab
+        const btnMarkAllRead = document.getElementById("btn-mark-all-read");
+        if (btnMarkAllRead) {
+            btnMarkAllRead.addEventListener("click", async () => {
+                try {
+                    const { error } = await window.supabaseClient
+                        .from('notifications')
+                        .update({ is_read: true })
+                        .eq('user_id', user.id)
+                        .eq('is_read', false);
+
+                    if (error) throw error;
+                    showToast("All notifications marked as read!");
+                    loadProfileNotifications();
+                    await syncUserDataOnLogin(user.id);
+                } catch (err) {
+                    showToast("Failed to mark all as read: " + err.message, "error");
+                }
+            });
+        }
+        
+        lucide.createIcons();
+    } catch (e) {
+        listContainer.innerHTML = `<p style="color:red; font-size:0.8rem; text-align:center;">Error loading notifications: ${e.message}</p>`;
     }
 }

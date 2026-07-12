@@ -590,7 +590,7 @@
                     <div class="footer-socials">
                         <a href="https://instagram.com" target="_blank" rel="noopener" aria-label="Instagram"><i data-lucide="instagram"></i></a>
                         <a href="https://facebook.com" target="_blank" rel="noopener" aria-label="Facebook"><i data-lucide="facebook"></i></a>
-                        <a href="https://wa.me/919876543210" target="_blank" rel="noopener" aria-label="WhatsApp"><i data-lucide="phone-call"></i></a>
+                        <a href="https://wa.me/919491171642" target="_blank" rel="noopener" aria-label="WhatsApp"><i data-lucide="phone-call"></i></a>
                     </div>
                 </div>
 
@@ -1020,7 +1020,7 @@
     </div>
 
     <!-- PROFILE MODAL -->
-    <div class="profile-modal" id="profile-modal" style="position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:9999; display:flex; align-items:center; justify-content:center; visibility:hidden; opacity:0; transition:var(--transition-smooth); pointer-events:none;">
+    <div class="profile-modal" id="profile-modal">
         <div class="profile-modal-overlay" id="profile-modal-overlay" style="position:absolute; top:0; left:0; width:100%; height:100%; background-color:rgba(30,41,32,0.45); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);"></div>
         <div class="profile-modal-content" style="position:relative; background:rgba(255,255,255,0.92); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border-radius:28px; width:calc(100% - 40px); max-width:900px; height:85vh; padding:40px; box-shadow:0 25px 60px rgba(30,41,32,0.2); z-index:10000; transform:translateY(30px); border:1px solid rgba(255,255,255,0.4); transition:var(--transition-smooth); overflow:hidden; display:flex; flex-direction:column; pointer-events:auto;">
             <button class="modal-close-btn" id="profile-close-btn" aria-label="Close Profile" style="position:absolute; right:20px; top:20px; border:none; background:transparent; cursor:pointer; color:var(--dark-green); font-size:1.5rem;"><i data-lucide="x"></i></button>
@@ -1041,6 +1041,7 @@
                         <li class="profile-nav-item" data-tab="orders" style="padding:10px 15px; border-radius:8px; font-size:0.8rem; font-weight:500; cursor:pointer; display:flex; align-items:center; gap:10px; color:var(--text-muted);"><i data-lucide="shopping-bag" style="width:16px; height:16px;"></i> Order History</li>
                         <li class="profile-nav-item" data-tab="wishlist" style="padding:10px 15px; border-radius:8px; font-size:0.8rem; font-weight:500; cursor:pointer; display:flex; align-items:center; gap:10px; color:var(--text-muted);"><i data-lucide="heart" style="width:16px; height:16px;"></i> My Wishlist</li>
                         <li class="profile-nav-item" data-tab="addresses" style="padding:10px 15px; border-radius:8px; font-size:0.8rem; font-weight:500; cursor:pointer; display:flex; align-items:center; gap:10px; color:var(--text-muted);"><i data-lucide="map-pin" style="width:16px; height:16px;"></i> Address Book</li>
+                        <li class="profile-nav-item" data-tab="notifications" style="padding:10px 15px; border-radius:8px; font-size:0.8rem; font-weight:500; cursor:pointer; display:flex; align-items:center; gap:10px; color:var(--text-muted);"><i data-lucide="bell" style="width:16px; height:16px;"></i> Notifications</li>
                     </ul>
                 </div>
                 
@@ -1147,6 +1148,17 @@
 
                         <div id="profile-addresses-list" style="display:flex; flex-direction:column; gap:15px;">
                             <!-- Dynamic addresses list -->
+                        </div>
+                    </div>
+                    
+                    <!-- Notifications Tab -->
+                    <div class="profile-tab-panel hidden" id="profile-tab-notifications">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                            <h4 style="font-family:var(--font-heading); color:var(--dark-green); margin-bottom:0; font-size:1.2rem;">Notifications</h4>
+                            <button class="btn btn-secondary btn-sm" id="btn-mark-all-read" style="padding:6px 12px; font-size:0.75rem;">Mark all as read</button>
+                        </div>
+                        <div id="profile-notifications-list" style="display:flex; flex-direction:column; gap:12px;">
+                            <!-- Dynamic Notifications list -->
                         </div>
                     </div>
                 </div>

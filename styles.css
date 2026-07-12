@@ -3555,12 +3555,14 @@ a {
     justify-content: center;
     visibility: hidden;
     opacity: 0;
+    pointer-events: none;
     transition: var(--transition-smooth);
 }
 
 .profile-modal.active {
     visibility: visible;
     opacity: 1;
+    pointer-events: auto;
 }
 
 .profile-modal-content {
