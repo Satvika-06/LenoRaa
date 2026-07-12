@@ -812,8 +812,26 @@ function setupEventListeners() {
                 trackingNumber: "TRK" + Math.floor(100000 + Math.random() * 900000)
             };
 
+            // Resolve cart items to include name and price details from PRODUCTS list
+            const cartWithDetails = cart.map(item => {
+                if (item.isCustom) {
+                    return {
+                        ...item,
+                        name: "Custom Soap Formulation",
+                        price: 300
+                    };
+                } else {
+                    const prod = PRODUCTS.find(p => p.id === item.id);
+                    return {
+                        ...item,
+                        name: prod ? prod.name : "Unknown Soap",
+                        price: prod ? prod.price : 90
+                    };
+                }
+            });
+
             // Call backend API to save order in database
-            const res = await window.LenoRaaAPI.placeOrder(orderDetails, cart);
+            const res = await window.LenoRaaAPI.placeOrder(orderDetails, cartWithDetails);
             if (!res.success) {
                 throw new Error(res.error);
             }
