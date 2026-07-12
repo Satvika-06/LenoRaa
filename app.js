@@ -2003,16 +2003,12 @@ function setupAuthListener() {
                 try {
                     const user = session.user;
                     
-                    // Fetch details from profiles table to make sure full_name is retrieved correctly
-                    const { data: profile } = await window.supabaseClient
-                        .from('profiles')
-                        .select('*')
-                        .eq('auth_user_id', user.id)
-                        .maybeSingle();
-
+                    // Fetch full profile details using the API helper (auto-creates if missing)
+                    const profile = await window.LenoRaaAPI.getCurrentUser();
+                    
                     const fullName = profile?.full_name || user.user_metadata?.full_name || user.user_metadata?.name || user.email.split("@")[0];
                     const phone = profile?.phone || user.phone || '';
-                    const avatarUrl = profile?.avatar_url || profile?.profile_image || user.user_metadata?.avatar_url || '';
+                    const avatarUrl = profile?.profile_image || profile?.avatar_url || user.user_metadata?.avatar_url || '';
                     
                     const initials = fullName.split(" ").map(w => w[0]).join("").substring(0, 2).toUpperCase();
                     
