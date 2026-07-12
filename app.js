@@ -1699,7 +1699,18 @@ function getErrorMessage(error) {
 
     if (message === "{}" || message === "null" || message === "undefined") {
         console.error("Unparseable error details:", error);
-        return "An unexpected error occurred. Please check your details and try again.";
+        let errorDetails = "";
+        if (error) {
+            if (typeof error === 'object') {
+                const keys = Object.getOwnPropertyNames(error);
+                const detailsObj = {};
+                keys.forEach(k => { detailsObj[k] = error[k]; });
+                errorDetails = JSON.stringify(detailsObj);
+            } else {
+                errorDetails = error.toString();
+            }
+        }
+        return "An unexpected error occurred. Details: " + (errorDetails || "Unknown error details");
     }
 
     // Map common Supabase authentication errors to user-friendly messages
