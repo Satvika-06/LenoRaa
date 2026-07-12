@@ -15,6 +15,25 @@ const getClient = () => {
     return window.supabaseClient;
 };
 
+// Helper to parse complex error parameters safely
+const getExceptionMessage = (error) => {
+    if (!error) return "Unknown error";
+    if (typeof error === 'string') return error;
+    if (error.message && typeof error.message === 'string') return error.message;
+    if (error.error_description && typeof error.error_description === 'string') return error.error_description;
+    if (error.error && typeof error.error === 'string') return error.error;
+    if (error.error && typeof error.error === 'object' && error.error.message && typeof error.error.message === 'string') return error.error.message;
+    if (error.statusText && typeof error.statusText === 'string') return error.statusText;
+    if (error.code && typeof error.code === 'string') return error.code;
+    
+    try {
+        const str = JSON.stringify(error);
+        if (str !== "{}" && str !== "null" && str !== "undefined") return str;
+    } catch (e) {}
+    
+    return error.toString();
+};
+
 // ==========================================================================
 // 1. AUTHENTICATION FLOW API
 // ==========================================================================
@@ -43,18 +62,7 @@ async function signup(email, password, fullName) {
         return { success: true, data };
     } catch (error) {
         console.error("Signup error:", error);
-        let errVal = "Unknown signup error";
-        if (error) {
-            errVal = error.message || error.error_description || error.error || error.statusText || error.code || error.toString();
-            if (typeof errVal === 'object') {
-                try {
-                    errVal = JSON.stringify(errVal);
-                } catch (e) {
-                    errVal = errVal.toString();
-                }
-            }
-        }
-        return { success: false, error: errVal };
+        return { success: false, error: getExceptionMessage(error) };
     }
 }
 
@@ -76,18 +84,7 @@ async function login(email, password) {
         return { success: true, data };
     } catch (error) {
         console.error("Login error:", error);
-        let errVal = "Unknown login error";
-        if (error) {
-            errVal = error.message || error.error_description || error.error || error.statusText || error.code || error.toString();
-            if (typeof errVal === 'object') {
-                try {
-                    errVal = JSON.stringify(errVal);
-                } catch (e) {
-                    errVal = errVal.toString();
-                }
-            }
-        }
-        return { success: false, error: errVal };
+        return { success: false, error: getExceptionMessage(error) };
     }
 }
 
