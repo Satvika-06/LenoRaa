@@ -952,7 +952,8 @@ async function googleLogin() {
             provider: 'google',
             options: {
                 redirectTo: 'https://leno-raa.vercel.app'
-        });
+            }
+            });
         if (error) throw error;
         return { success: true, data };
     } catch (error) {
