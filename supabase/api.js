@@ -42,8 +42,19 @@ async function signup(email, password, fullName) {
         if (error) throw error;
         return { success: true, data };
     } catch (error) {
-        console.error("Signup error:", error.message);
-        return { success: false, error: error.message };
+        console.error("Signup error:", error);
+        let errVal = "Unknown signup error";
+        if (error) {
+            errVal = error.message || error.error_description || error.error || error.statusText || error.code || error.toString();
+            if (typeof errVal === 'object') {
+                try {
+                    errVal = JSON.stringify(errVal);
+                } catch (e) {
+                    errVal = errVal.toString();
+                }
+            }
+        }
+        return { success: false, error: errVal };
     }
 }
 
@@ -64,8 +75,19 @@ async function login(email, password) {
         if (error) throw error;
         return { success: true, data };
     } catch (error) {
-        console.error("Login error:", error.message);
-        return { success: false, error: error.message };
+        console.error("Login error:", error);
+        let errVal = "Unknown login error";
+        if (error) {
+            errVal = error.message || error.error_description || error.error || error.statusText || error.code || error.toString();
+            if (typeof errVal === 'object') {
+                try {
+                    errVal = JSON.stringify(errVal);
+                } catch (e) {
+                    errVal = errVal.toString();
+                }
+            }
+        }
+        return { success: false, error: errVal };
     }
 }
 
