@@ -3225,11 +3225,29 @@ a {
     border: 1px solid rgba(168, 184, 154, 0.25);
     box-shadow: 0 2px 4px rgba(46, 74, 53, 0.02);
     transition: var(--transition-smooth);
+    cursor: pointer;
+    user-select: none;
+}
+
+.calc-ing-pill:hover {
+    transform: translateY(-1px);
+    border-color: var(--sage-green);
+    box-shadow: 0 4px 8px rgba(46, 74, 53, 0.06);
 }
 
 .calc-ing-pill svg {
     width: 12px;
     height: 12px;
+    color: var(--sage-green);
+}
+
+.calc-ing-pill.active-oil-pill {
+    background: rgba(46, 74, 53, 0.08);
+    border-color: var(--sage-green);
+    color: var(--dark-green);
+}
+
+.calc-ing-pill.active-oil-pill svg {
     color: var(--sage-green);
 }
 

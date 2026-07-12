@@ -257,7 +257,9 @@ let customSoapState = {
     fragrance: 'Lavender Essential Oil',
     color: 'Creamy Beige',
     shape: 'Classic Rectangle',
-    packaging: 'Eco-friendly Kraft Paper wrapper'
+    packaging: 'Eco-friendly Kraft Paper wrapper',
+    activeOils: ["Coconut Oil (92 deg)", "Palm Oil", "Rice Bran Oil (refined)", "Sunflower Oil", "Mustard Oil (kachi ghani)", "Castor Oil"],
+    activeFlavorActive: true
 };
 
 // 3. PAGE INITIALIZATION
@@ -575,7 +577,12 @@ function setupEventListeners() {
                 // If skin type changed, load flavours for that skin type and set first flavour as default
                 const defaultFlavour = SKIN_TYPE_FORMULATIONS[val].flavours[0];
                 customSoapState.ingredients = defaultFlavour;
+                customSoapState.activeOils = SKIN_TYPE_FORMULATIONS[val].oils.map(o => o.name);
+                customSoapState.activeFlavorActive = true;
                 renderCustomizerFlavours();
+                renderScientificFormulation();
+            } else if (group === "ingredients") {
+                customSoapState.activeFlavorActive = true;
                 renderScientificFormulation();
             }
 
@@ -1082,6 +1089,141 @@ function renderCustomizerFlavours() {
     });
 }
 
+const OIL_PROPERTIES = {
+    "Coconut Oil": { hardness: 79, cleansing: 67, conditioning: 10, bubbly: 67, creamy: 12, iodine: 10, ins: 258, sat: 90 },
+    "Coconut Oil (92 deg)": { hardness: 79, cleansing: 67, conditioning: 10, bubbly: 67, creamy: 12, iodine: 10, ins: 258, sat: 90 },
+    "Palm Oil": { hardness: 50, cleansing: 0, conditioning: 49, bubbly: 0, creamy: 50, iodine: 53, ins: 145, sat: 50 },
+    "Olive Oil": { hardness: 17, cleansing: 0, conditioning: 82, bubbly: 0, creamy: 17, iodine: 85, ins: 109, sat: 15 },
+    "Rice Bran Oil": { hardness: 26, cleansing: 0, conditioning: 73, bubbly: 0, creamy: 26, iodine: 99, ins: 100, sat: 20 },
+    "Rice Bran Oil (refined)": { hardness: 26, cleansing: 0, conditioning: 73, bubbly: 0, creamy: 26, iodine: 99, ins: 100, sat: 20 },
+    "Sunflower Oil": { hardness: 9, cleansing: 0, conditioning: 90, bubbly: 0, creamy: 9, iodine: 133, ins: 37, sat: 10 },
+    "Mustard Oil": { hardness: 10, cleansing: 0, conditioning: 85, bubbly: 0, creamy: 10, iodine: 101, ins: 80, sat: 5 },
+    "Mustard Oil (kachi ghani)": { hardness: 10, cleansing: 0, conditioning: 85, bubbly: 0, creamy: 10, iodine: 101, ins: 80, sat: 5 },
+    "Castor Oil": { hardness: 0, cleansing: 0, conditioning: 98, bubbly: 90, creamy: 90, iodine: 86, ins: 95, sat: 5 },
+    "Sweet Almond Oil": { hardness: 7, cleansing: 0, conditioning: 91, bubbly: 0, creamy: 7, iodine: 99, ins: 97, sat: 10 },
+    "Sesame Oil": { hardness: 12, cleansing: 0, conditioning: 85, bubbly: 0, creamy: 12, iodine: 110, ins: 81, sat: 15 },
+    "Cocoa Butter": { hardness: 61, cleansing: 0, conditioning: 38, bubbly: 0, creamy: 61, iodine: 37, ins: 157, sat: 60 }
+};
+
+const FLAVOUR_PROPERTIES = {
+    "Charcoal": { cleansing: 15, creamy: 5 },
+    "Orange": { cleansing: 8, conditioning: 4 },
+    "Manjistha with sandalwood": { conditioning: 10, creamy: 5 },
+    "Rose": { conditioning: 8, creamy: 4 },
+    "Menthol": { cleansing: 5, conditioning: 5 },
+    "Goatmilk": { conditioning: 15, creamy: 10 },
+    "Aloevera": { conditioning: 12, creamy: 5 },
+    "Lavender": { conditioning: 10, creamy: 5 },
+    "Nalapamaradi": { conditioning: 12, creamy: 8 },
+    "Tomato": { cleansing: 8, conditioning: 6 },
+    "Liquorice": { conditioning: 10, creamy: 5 },
+    "Ayurvedic herbal": { conditioning: 12, creamy: 6 },
+    "Haridra+Neem": { cleansing: 10, conditioning: 8 }
+};
+
+function recalculateSoapProperties() {
+    const formula = SKIN_TYPE_FORMULATIONS[customSoapState.skinType];
+    if (!formula) return;
+
+    const satUnsatEl = document.getElementById("sat-unsat-val");
+    const insNumberEl = document.getElementById("ins-number-val");
+    const qualitiesContainer = document.getElementById("soap-quality-grid");
+    if (!qualitiesContainer) return;
+
+    // Filter selected oils
+    const selectedOils = formula.oils.filter(oil => customSoapState.activeOils.includes(oil.name));
+    
+    // Sum of selected percentages
+    const totalPercentage = selectedOils.reduce((sum, o) => sum + o.percentage, 0);
+
+    let calculatedQualities = {
+        "Hardness": 0,
+        "Cleansing": 0,
+        "Conditioning": 0,
+        "Bubbly": 0,
+        "Creamy": 0,
+        "Iodine": 0,
+        "INS": 0
+    };
+    
+    let totalSat = 0;
+    
+    if (totalPercentage > 0) {
+        selectedOils.forEach(oil => {
+            const shortName = oil.name.split(" (")[0];
+            const props = OIL_PROPERTIES[oil.name] || OIL_PROPERTIES[shortName] || { hardness: 20, cleansing: 0, conditioning: 50, bubbly: 0, creamy: 20, iodine: 60, ins: 120, sat: 20 };
+            
+            // Normalized percentage share
+            const share = oil.percentage / totalPercentage;
+
+            calculatedQualities["Hardness"] += share * props.hardness;
+            calculatedQualities["Cleansing"] += share * props.cleansing;
+            calculatedQualities["Conditioning"] += share * props.conditioning;
+            calculatedQualities["Bubbly"] += share * props.bubbly;
+            calculatedQualities["Creamy"] += share * props.creamy;
+            calculatedQualities["Iodine"] += share * props.iodine;
+            calculatedQualities["INS"] += share * props.ins;
+            totalSat += share * props.sat;
+        });
+    }
+
+    // Add active flavour properties if it is toggled active
+    if (customSoapState.activeFlavorActive && customSoapState.ingredients) {
+        const flavProps = FLAVOUR_PROPERTIES[customSoapState.ingredients] || { cleansing: 5, conditioning: 5 };
+        Object.keys(flavProps).forEach(key => {
+            const capKey = key.charAt(0).toUpperCase() + key.slice(1);
+            if (calculatedQualities[capKey] !== undefined) {
+                calculatedQualities[capKey] += flavProps[key];
+            }
+        });
+    }
+
+    // Round values to integers
+    Object.keys(calculatedQualities).forEach(key => {
+        calculatedQualities[key] = Math.round(calculatedQualities[key]);
+    });
+
+    const satVal = Math.round(totalSat);
+    const unsatVal = 100 - satVal;
+
+    // Render Soap Qualities
+    qualitiesContainer.innerHTML = "";
+    formula.qualities.forEach(q => {
+        const item = document.createElement("div");
+        item.className = "quality-item";
+        
+        const value = calculatedQualities[q.name] || 0;
+
+        // Normalize visual length
+        let pct = value;
+        if (q.name === "INS") {
+            pct = ((value - 100) / 80) * 100;
+        } else if (q.name === "Iodine") {
+            pct = (value / 80) * 100;
+        } else if (q.name === "Conditioning") {
+            pct = (value / 80) * 100;
+        } else {
+            pct = (value / 60) * 100;
+        }
+        pct = Math.max(10, Math.min(100, pct));
+
+        item.innerHTML = `
+            <div class="quality-item-header">
+                <span class="q-name">${q.name}</span>
+                <span class="q-range">${q.range}</span>
+                <strong class="q-val">${value}</strong>
+            </div>
+            <div class="quality-bar">
+                <div class="quality-bar-fill" style="width: ${pct}%;"></div>
+            </div>
+        `;
+        qualitiesContainer.appendChild(item);
+    });
+
+    if (satUnsatEl) satUnsatEl.textContent = `${satVal} : ${unsatVal}`;
+    if (insNumberEl) insNumberEl.textContent = calculatedQualities["INS"] || 0;
+}
+
 function renderScientificFormulation() {
     const oilsContainer = document.getElementById("oil-composition-list");
     const qualitiesContainer = document.getElementById("soap-quality-grid");
@@ -1101,57 +1243,46 @@ function renderScientificFormulation() {
     formula.oils.forEach(oil => {
         const shortName = oil.name.split(" (")[0]; // remove detailed notes
         const tag = document.createElement("span");
-        tag.className = "calc-ing-pill";
+        
+        // Active/inactive styling
+        const isActive = customSoapState.activeOils.includes(oil.name);
+        tag.className = "calc-ing-pill" + (isActive ? " active-oil-pill" : "");
         tag.innerHTML = `<i data-lucide="droplet"></i> ${shortName}`;
+        
+        // Toggle action
+        tag.addEventListener("click", () => {
+            if (isActive) {
+                customSoapState.activeOils = customSoapState.activeOils.filter(name => name !== oil.name);
+            } else {
+                customSoapState.activeOils.push(oil.name);
+            }
+            renderScientificFormulation(); // Re-render the tags
+        });
+        
         listWrapper.appendChild(tag);
     });
 
     // Add active flavour tag as well
     if (customSoapState.ingredients) {
         const activeTag = document.createElement("span");
-        activeTag.className = "calc-ing-pill active-flavor-pill";
+        const isActive = customSoapState.activeFlavorActive;
+        activeTag.className = "calc-ing-pill" + (isActive ? " active-flavor-pill" : "");
         activeTag.innerHTML = `<i data-lucide="sparkles"></i> ${customSoapState.ingredients}`;
+        
+        // Toggle action for flavor
+        activeTag.addEventListener("click", () => {
+            customSoapState.activeFlavorActive = !customSoapState.activeFlavorActive;
+            renderScientificFormulation(); // Re-render
+        });
+        
         listWrapper.appendChild(activeTag);
     }
     
     oilsContainer.appendChild(listWrapper);
     lucide.createIcons();
 
-    // Render Soap Qualities
-    qualitiesContainer.innerHTML = "";
-    formula.qualities.forEach(q => {
-        const item = document.createElement("div");
-        item.className = "quality-item";
-        
-        // Normalize visual length
-        let pct = q.value;
-        if (q.name === "INS") {
-            pct = ((q.value - 100) / 80) * 100;
-        } else if (q.name === "Iodine") {
-            pct = (q.value / 80) * 100;
-        } else if (q.name === "Conditioning") {
-            pct = (q.value / 80) * 100;
-        } else {
-            pct = (q.value / 60) * 100;
-        }
-        pct = Math.max(10, Math.min(100, pct));
-
-        item.innerHTML = `
-            <div class="quality-item-header">
-                <span class="q-name">${q.name}</span>
-                <span class="q-range">${q.range}</span>
-                <strong class="q-val">${q.value}</strong>
-            </div>
-            <div class="quality-bar">
-                <div class="quality-bar-fill" style="width: ${pct}%;"></div>
-            </div>
-        `;
-        qualitiesContainer.appendChild(item);
-    });
-
-    // Ratios
-    if (satUnsatEl) satUnsatEl.textContent = formula.satUnsat;
-    if (insNumberEl) insNumberEl.textContent = formula.insValue;
+    // Calculate and display properties
+    recalculateSoapProperties();
 }
 
 // ==========================================================================
