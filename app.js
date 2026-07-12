@@ -130,7 +130,7 @@ const PRODUCTS = [
     price: 120,
     category: "ultra sensitive",
     description: "A soothing handcrafted soap enriched with finely ground oats and pure honey to gently cleanse, calm, and nourish delicate skin. Perfect for babies and anyone with ultra-sensitive skin, leaving it soft, hydrated, and naturally healthy after every wash.",
-    image: "assets/Golden Oats.jpeg",
+    image: "assets/golden.jpeg",
     tags: ["Ultra Gentle", "Baby Safe", "Sensitive Skin", "Honey & Oats"],
     ingredients: [ "Oats", "Raw Honey", "Coconut Oil", "Olive Oil", "Castor Oil", "Cocoa Butter" ]
     },
