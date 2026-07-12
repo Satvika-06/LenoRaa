@@ -40,23 +40,6 @@ async function signup(email, password, fullName) {
         });
 
         if (error) throw error;
-
-        // Manually insert profile row as trigger fallback / explicit flow
-        if (data && data.user) {
-            const { error: profileError } = await supabase
-                .from('profiles')
-                .insert({
-                    auth_user_id: data.user.id,
-                    full_name: fullName.trim(),
-                    email: email.trim().toLowerCase()
-                });
-
-            // If profileError is not a duplicate key error (which means the trigger handled it), throw the error
-            if (profileError && !profileError.message.includes("duplicate key")) {
-                throw new Error("Failed to initialize user profile in database: " + profileError.message);
-            }
-        }
-
         return { success: true, data };
     } catch (error) {
         console.error("Signup error:", error.message);

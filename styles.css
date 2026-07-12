@@ -2775,6 +2775,8 @@ a {
     justify-content: center;
     visibility: hidden;
     opacity: 0;
+    overflow-y: auto;
+    padding: 30px 0;
     transition: var(--transition-smooth);
 }
 
