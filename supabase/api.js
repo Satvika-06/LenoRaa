@@ -483,17 +483,26 @@ async function placeOrder(orderDetails, cartItems) {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) throw new Error("Authentication required to place order.");
 
+        // Fetch all products from DB to resolve names to UUIDs
+        const { data: dbProducts } = await supabase
+            .from('products')
+            .select('id, name');
+
         // Map cart items to the database array format
         const itemsJson = cartItems.map(item => {
-            let totalVal = 0;
-            if (item.isCustom) {
-                totalVal = item.price * item.quantity;
-            } else {
-                totalVal = item.price * item.quantity;
+            let totalVal = item.price * item.quantity;
+            
+            // Resolve product_id by matching name
+            let resolvedProductId = null;
+            if (!item.isCustom && dbProducts) {
+                const matched = dbProducts.find(p => p.name.toLowerCase() === item.name.toLowerCase());
+                if (matched) {
+                    resolvedProductId = matched.id;
+                }
             }
 
             return {
-                product_id: item.isCustom ? null : item.id,
+                product_id: resolvedProductId,
                 is_custom: item.isCustom || false,
                 custom_details: item.isCustom ? item.customDetails : null,
                 quantity: item.quantity,
