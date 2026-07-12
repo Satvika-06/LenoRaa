@@ -943,9 +943,9 @@ async function googleLogin() {
         const { data, error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
-                redirectTo: 'https://leno-raa.vercel.app'
+                redirectTo: window.location.origin
             }
-            });
+        });
         if (error) throw error;
         return { success: true, data };
     } catch (error) {

@@ -2039,12 +2039,21 @@ function setupAuthListener() {
                 try {
                     const user = session.user;
                     
-                    // Fetch full profile details using the API helper (auto-creates if missing)
-                    const profile = await window.LenoRaaAPI.getCurrentUser();
-                    
-                    const fullName = profile?.full_name || user.user_metadata?.full_name || user.user_metadata?.name || user.email.split("@")[0];
-                    const phone = profile?.phone || user.phone || '';
-                    const avatarUrl = profile?.profile_image || profile?.avatar_url || user.user_metadata?.avatar_url || '';
+                    let fullName = user.user_metadata?.full_name || user.user_metadata?.name || user.email.split("@")[0];
+                    let phone = user.phone || '';
+                    let avatarUrl = user.user_metadata?.avatar_url || '';
+
+                    try {
+                        // Fetch full profile details using the API helper (auto-creates if missing)
+                        const profile = await window.LenoRaaAPI.getCurrentUser();
+                        if (profile) {
+                            fullName = profile.full_name || fullName;
+                            phone = profile.phone || phone;
+                            avatarUrl = profile.profile_image || profile.avatar_url || avatarUrl;
+                        }
+                    } catch (e) {
+                        console.warn("Failed to fetch full profile details, using session fallback:", e);
+                    }
                     
                     const initials = fullName.split(" ").map(w => w[0]).join("").substring(0, 2).toUpperCase();
                     
